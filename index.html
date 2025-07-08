@@ -1,221 +1,261 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>ENIGMA</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#00bfff">
-  <link rel="manifest" href="manifest.json">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <meta name="theme-color" content="#ffffff" />
+  <title></title>
   <style>
-    html { font-size: 18px; }
-    @media (max-width: 480px) { html { font-size: 20px; } }
     body {
+      background: #f4f4f7;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: #000;
-      color: #fff;
-      padding: 20px;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+    }
+
+    .app-container {
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      padding: 24px;
+      max-width: 400px;
+      width: 100%;
+      margin: 20px;
+    }
+
+    .input-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      width: 48%;
+    }
+
+    label {
+      font-size: 12px;
+      color: #555;
+      margin-bottom: 4px;
+    }
+
+    input[type="number"] {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      font-size: 16px;
+      background: #f9f9f9;
       text-align: center;
-      overflow-x: hidden;
     }
-    input, button {
-      padding: 10px;
-      font-size: 1rem;
-      border: none;
-      border-radius: 5px;
-      margin: 5px;
+
+    .summary {
+      background: #f1f3f5;
+      border-radius: 14px;
+      padding: 14px;
+      margin-top: 20px;
+      text-align: center;
+      font-size: 14px;
+      color: #333;
     }
-    .section {
-      margin-bottom: 20px;
-    }
-    .bold { font-weight: bold; }
-    .risk { color: #00bfff; font-size: 1.5rem; }
-    .dd-left { font-size: 1.1rem; color: #00ffff; }
-    .history-container {
-      text-align: left;
-      margin-top: 10px;
-    }
-    details summary {
+
+    .summary .risk {
       font-weight: bold;
+      font-size: 16px;
+      color: #007aff;
+    }
+
+    .buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
+    }
+
+    button {
+      flex: 1;
+      margin: 0 5px;
+      padding: 14px;
+      border-radius: 14px;
+      font-size: 16px;
+      border: none;
       cursor: pointer;
-      background: #111;
-      padding: 10px;
-      border-radius: 5px;
+      color: white;
     }
-    .history-log {
-      background: #1a1a1a;
-      padding: 10px;
-      border-radius: 5px;
-      max-height: 150px;
-      overflow-y: auto;
-      font-size: 0.9rem;
-    }
-    .sim-controls button {
-      padding: 12px;
-      font-size: 1rem;
-      margin: 5px;
-    }
-    .win { background: #28a745; color: white; }
-    .loss { background: #dc3545; color: white; }
-    .undo { background: #ff9900; color: white; }
+
+    .win-btn { background: #34c759; }
+    .loss-btn { background: #ff3b30; }
+    .undo-btn { background: #ff9500; }
+
     .bubble-container {
       display: flex;
       flex-wrap: wrap;
-      justify-content: center;
       gap: 6px;
-      margin-top: 15px;
+      justify-content: center;
+      margin-top: 20px;
     }
+
     .bubble {
-      width: 20px;
-      height: 20px;
+      width: 16px;
+      height: 16px;
       border-radius: 50%;
     }
-    .bubble.win { background: #28a745; }
-    .bubble.loss { background: #dc3545; }
+
+    .win { background: #34c759; }
+    .loss { background: #ff3b30; }
+
     .quote-box {
-      font-size: 1rem;
-      margin-top: 15px;
-      color: #aaa;
+      font-size: 13px;
+      color: #666;
+      text-align: center;
+      margin-top: 12px;
+      font-style: italic;
     }
   </style>
 </head>
 <body>
-
-<!-- Calculator Section -->
-<div class="section">
-  <div class="risk">Current Risk: <span id="currentRisk">$0.00</span></div>
-  <div class="dd-left">DD Left: <span id="ddLeft">$0.00</span></div>
-
-  <div>
-    IB: <input type="number" id="ib" placeholder="Initial" />
-    CB: <input type="number" id="cb" placeholder="Current" />
-    TAD: <input type="number" id="tad" placeholder="Total DD" />
-    <input type="number" id="ddPercent" placeholder="% Risk" value="10" style="width:60px;">%
-    <button onclick="updateDrawdown()">Update</button>
-  </div>
-
-  <div class="history-container">
-    <details>
-      <summary>📜 History</summary>
-      <div class="history-log" id="historyLog"></div>
-    </details>
-    <div style="font-size: 0.9rem; margin-top: 6px;">
-      Current DD: <span id="currentDD">$0.00</span>
+  <div class="app-container">
+    <div class="input-row">
+      <div class="input-group">
+        <label>IB</label>
+        <input type="number" id="ib" placeholder="Initial Balance">
+      </div>
+      <div class="input-group">
+        <label>CB</label>
+        <input type="number" id="cb" placeholder="Current Balance">
+      </div>
     </div>
+
+    <div class="input-row">
+      <div class="input-group">
+        <label>TAD</label>
+        <input type="number" id="tad" placeholder="Total DD">
+      </div>
+      <div class="input-group">
+        <label>Risk %</label>
+        <input type="number" id="riskPercent" placeholder="10" value="10">
+      </div>
+    </div>
+
+    <div class="summary">
+      <div class="risk" id="riskBox">Current Risk: $0.00</div>
+      <div>DD: <span id="ddBox">$0.00</span> | DD Left: <span id="ddLeftBox">$0.00</span></div>
+    </div>
+
+    <div class="buttons">
+      <button class="win-btn" onclick="logTrade(true)">Win</button>
+      <button class="loss-btn" onclick="logTrade(false)">Loss</button>
+      <button class="undo-btn" onclick="undoLastTrade()">Undo</button>
+    </div>
+
+    <div id="streakBox" class="summary">Streak: 0</div>
+    <div id="winRateBox" class="summary">Win Rate: 0%</div>
+    <div class="bubble-container" id="bubbleContainer"></div>
+    <div class="quote-box" id="quoteBox"></div>
   </div>
-</div>
-
-<!-- Simulator Section -->
-<div class="section sim-controls">
-  <button class="win" onclick="logTrade(true)">Win</button>
-  <button class="loss" onclick="logTrade(false)">Loss</button>
-  <button class="undo" onclick="undoLastTrade()">Undo</button>
-  <div id="streakDisplay">Streak: 0</div>
-  <div id="winRateBox">Win Rate: 0%</div>
-</div>
-
-<div class="bubble-container" id="bubbleContainer"></div>
-<div class="quote-box" id="quoteBox"></div>
-
-<audio id="winSound" src="https://assets.mixkit.co/sfx/download/mixkit-achievement-bell-600.wav"></audio>
-<audio id="lossSound" src="https://assets.mixkit.co/sfx/download/mixkit-wrong-answer-fail-notification-946.wav"></audio>
 
 <script>
-  let ib = 0, cb = 0, tad = 0, ddPercent = 10;
-  let trades = [], pnl = 0, streak = 0, lossStreak = 0, winStreak = 0;
+  let pnl = 0;
+  let tradeHistory = [], winStreak = 0, lossStreak = 0;
+
   const quotes = [
-    "Stay calm and stick to your plan.",
-    "A single loss doesn't define your strategy.",
-    "Winning is about probability, not perfection.",
-    "Manage risk. Trust the math.",
-    "Your edge plays out over time.",
-    "Think long-term, not just next trade."
+    "Focus on process, not outcome.",
+    "Even a perfect setup can lose — that’s the game.",
+    "Probabilities, not predictions.",
+    "A trade is a sample, not a signal.",
+    "Discipline > Emotion.",
+    "Expect variance. Manage outcomes.",
+    "No edge guarantees certainty.",
+    "It's all about risk-adjusted thinking.",
+    "Success = Execution + Risk Control.",
+    "Consistency beats intensity."
   ];
 
-  function updateDrawdown() {
-    ib = parseFloat(document.getElementById('ib').value) || 0;
-    cb = parseFloat(document.getElementById('cb').value) || 0;
-    tad = parseFloat(document.getElementById('tad').value) || 0;
-    ddPercent = parseFloat(document.getElementById('ddPercent').value) || 10;
+  function updateRisk() {
+    const ib = parseFloat(document.getElementById("ib").value) || 0;
+    const cb = parseFloat(document.getElementById("cb").value) || 0;
+    const tad = parseFloat(document.getElementById("tad").value) || 0;
+    const percent = parseFloat(document.getElementById("riskPercent").value) || 10;
 
-    const currentDD = ib - cb;
-    const ddLeft = tad - currentDD;
-    let risk = 0;
+    const dd = Math.max(ib - cb, 0);
+    const ddLeft = Math.max(tad - dd, 0);
+    const risk = (cb >= ib ? tad : ddLeft) * percent / 100;
 
-    if (cb >= ib) {
-      risk = (tad * ddPercent) / 100;
-    } else {
-      risk = (ddLeft * ddPercent) / 100;
-    }
-
-    document.getElementById('currentRisk').textContent = `$${risk.toFixed(2)}`;
-    document.getElementById('ddLeft').textContent = `$${ddLeft.toFixed(2)}`;
-    document.getElementById('currentDD').textContent = `$${currentDD.toFixed(2)}`;
-    addToHistory(`CB: $${cb} | IB: $${ib} | Risk: $${risk.toFixed(2)} | DD Left: $${ddLeft.toFixed(2)}`);
+    document.getElementById("riskBox").textContent = `Current Risk: $${risk.toFixed(2)}`;
+    document.getElementById("ddBox").textContent = `$${dd.toFixed(2)}`;
+    document.getElementById("ddLeftBox").textContent = `$${ddLeft.toFixed(2)}`;
   }
 
-  function addToHistory(msg) {
-    const log = document.getElementById("historyLog");
-    const time = new Date().toLocaleTimeString();
-    const div = document.createElement("div");
-    div.textContent = `[${time}] ${msg}`;
-    log.prepend(div);
-  }
-
-  function logTrade(isWin) {
-    const r = isWin ? 2 : -1;
+  function logTrade(win) {
+    const r = win ? 2 : -1;
+    tradeHistory.push({ win, r });
     pnl += r;
-    trades.push(isWin);
-    streak++;
-    isWin ? (winStreak++, lossStreak = 0) : (lossStreak++, winStreak = 0);
-    isWin ? document.getElementById('winSound').play() : document.getElementById('lossSound').play();
+    updateBubbles(win);
+    updateStreak(win);
     updateWinRate();
-    updateStreak();
     showQuote();
-    createBubble(isWin);
   }
 
   function undoLastTrade() {
-    if (!trades.length) return;
-    const last = trades.pop();
-    pnl -= last ? 2 : -1;
-    document.querySelectorAll('.bubble').at(-1)?.remove();
-    winStreak = 0; lossStreak = 0;
+    const last = tradeHistory.pop();
+    if (!last) return;
+    pnl -= last.r;
+    document.querySelectorAll('.bubble').item(-1)?.remove();
+    winStreak = 0;
+    lossStreak = 0;
+    updateStreakDisplay();
     updateWinRate();
-    updateStreak();
+    document.getElementById("quoteBox").textContent = "";
+  }
+
+  function updateBubbles(win) {
+    const b = document.createElement("div");
+    b.className = `bubble ${win ? 'win' : 'loss'}`;
+    document.getElementById("bubbleContainer").appendChild(b);
+  }
+
+  function updateStreak(win) {
+    if (win) { winStreak++; lossStreak = 0; }
+    else { lossStreak++; winStreak = 0; }
+    updateStreakDisplay();
+  }
+
+  function updateStreakDisplay() {
+    const s = winStreak ? `${winStreak} Win Streak` : lossStreak ? `${lossStreak} Losses` : '0';
+    document.getElementById("streakBox").textContent = `Streak: ${s}`;
   }
 
   function updateWinRate() {
-    const total = trades.length;
-    const wins = trades.filter(Boolean).length;
-    const rate = total ? ((wins / total) * 100).toFixed(1) : 0;
-    document.getElementById('winRateBox').textContent = `Win Rate: ${rate}%`;
-  }
-
-  function updateStreak() {
-    let msg = 'Streak: ';
-    msg += winStreak >= 3 ? `${winStreak} Wins 🔥` :
-           lossStreak >= 3 ? `${lossStreak} Losses 🧊` :
-           winStreak > 0 ? `${winStreak} Win` :
-           lossStreak > 0 ? `${lossStreak} Loss` : '0';
-    document.getElementById('streakDisplay').textContent = msg;
-  }
-
-  function createBubble(isWin) {
-    const bubble = document.createElement('div');
-    bubble.className = `bubble ${isWin ? 'win' : 'loss'}`;
-    document.getElementById('bubbleContainer').appendChild(bubble);
+    const wins = tradeHistory.filter(t => t.win).length;
+    const total = tradeHistory.length;
+    const rate = total ? (wins / total * 100).toFixed(1) : 0;
+    document.getElementById("winRateBox").textContent = `Win Rate: ${rate}%`;
   }
 
   function showQuote() {
-    const q = quotes[Math.floor(Math.random() * quotes.length)];
-    document.getElementById('quoteBox').textContent = q;
+    const quote = quotes[Math.floor(Math.random() * quotes.length)];
+    document.getElementById("quoteBox").textContent = `"${quote}"`;
   }
 
+  ["ib", "cb", "tad", "riskPercent"].forEach(id =>
+    document.getElementById(id).addEventListener("input", updateRisk)
+  );
+
+  updateRisk();
+</script>
+
+<!-- Register Service Worker for PWA -->
+<script>
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('service-worker.js')
-      .then(() => console.log("✅ Service Worker Registered"))
-      .catch(err => console.error("❌ Service Worker Error:", err));
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(reg => console.log('✅ Service Worker registered'))
+        .catch(err => console.error('❌ Service Worker registration failed:', err));
+    });
   }
 </script>
 </body>
