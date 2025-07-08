@@ -2,29 +2,69 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="manifest" href="manifest.json" />
-  <link rel="apple-touch-icon" href="icon-192.png" />
-  <meta name="theme-color" content="#ffffff" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="manifest" href="manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="apple-touch-icon" href="icon-192.png">
   <title></title>
   <style>
+    :root {
+      --bg: #f4f4f7;
+      --text: #222;
+      --card: #fff;
+      --input: #f9f9f9;
+      --border: #ccc;
+      --accent: #007aff;
+      --summary-bg: #f1f3f5;
+      --quote: #666;
+    }
+    .dark {
+      --bg: #111;
+      --text: #fff;
+      --card: #1e1e1e;
+      --input: #2a2a2a;
+      --border: #444;
+      --accent: #0a84ff;
+      --summary-bg: #2e2e2e;
+      --quote: #aaa;
+    }
+
     body {
-      background: #f4f4f7;
+      background: var(--bg);
+      color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       margin: 0;
       padding: 0;
       display: flex;
       justify-content: center;
+      transition: all 0.3s ease;
     }
 
     .app-container {
-      background: #fff;
+      background: var(--card);
       border-radius: 20px;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
       padding: 24px;
       max-width: 400px;
       width: 100%;
       margin: 20px;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 10px;
+    }
+
+    .toggle {
+      font-size: 14px;
+      background: var(--accent);
+      color: white;
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
     }
 
     .input-row {
@@ -41,33 +81,33 @@
 
     label {
       font-size: 12px;
-      color: #555;
+      color: var(--quote);
       margin-bottom: 4px;
     }
 
     input[type="number"] {
       padding: 10px;
-      border: 1px solid #ccc;
+      border: 1px solid var(--border);
       border-radius: 12px;
       font-size: 16px;
-      background: #f9f9f9;
+      background: var(--input);
       text-align: center;
+      color: var(--text);
     }
 
     .summary {
-      background: #f1f3f5;
+      background: var(--summary-bg);
       border-radius: 14px;
       padding: 14px;
       margin-top: 20px;
       text-align: center;
       font-size: 14px;
-      color: #333;
     }
 
     .summary .risk {
       font-weight: bold;
       font-size: 16px;
-      color: #007aff;
+      color: var(--accent);
     }
 
     .buttons {
@@ -110,7 +150,7 @@
 
     .quote-box {
       font-size: 13px;
-      color: #666;
+      color: var(--quote);
       text-align: center;
       margin-top: 12px;
       font-style: italic;
@@ -119,6 +159,10 @@
 </head>
 <body>
   <div class="app-container">
+    <div class="top-bar">
+      <button class="toggle" onclick="toggleDarkMode()">Dark Mode</button>
+    </div>
+
     <div class="input-row">
       <div class="input-group">
         <label>IB</label>
@@ -137,7 +181,7 @@
       </div>
       <div class="input-group">
         <label>Risk %</label>
-        <input type="number" id="riskPercent" placeholder="10" value="10">
+        <input type="number" id="riskPercent" placeholder="10">
       </div>
     </div>
 
@@ -160,7 +204,9 @@
 
 <script>
   let pnl = 0;
-  let tradeHistory = [], winStreak = 0, lossStreak = 0;
+  let tradeHistory = [];
+  let winStreak = 0;
+  let lossStreak = 0;
 
   const quotes = [
     "Focus on process, not outcome.",
@@ -168,12 +214,50 @@
     "Probabilities, not predictions.",
     "A trade is a sample, not a signal.",
     "Discipline > Emotion.",
-    "Expect variance. Manage outcomes.",
-    "No edge guarantees certainty.",
-    "It's all about risk-adjusted thinking.",
-    "Success = Execution + Risk Control.",
-    "Consistency beats intensity."
+    "Success lies in consistency, not luck.",
+    "It's not about being right, it's about making money.",
+    "Control risk, the reward will follow.",
+    "Markets are random. Your behavior shouldn’t be."
   ];
+
+  function toggleDarkMode() {
+    const isDark = document.body.classList.toggle("dark");
+    localStorage.setItem("theme", isDark ? "dark" : "light");
+  }
+
+  function saveState() {
+    const state = {
+      ib: document.getElementById("ib").value,
+      cb: document.getElementById("cb").value,
+      tad: document.getElementById("tad").value,
+      riskPercent: document.getElementById("riskPercent").value,
+      pnl, tradeHistory, winStreak, lossStreak
+    };
+    localStorage.setItem("enigmaState", JSON.stringify(state));
+  }
+
+  function loadState() {
+    const theme = localStorage.getItem("theme");
+    if (theme === "dark") document.body.classList.add("dark");
+
+    const state = JSON.parse(localStorage.getItem("enigmaState"));
+    if (!state) return;
+
+    document.getElementById("ib").value = state.ib || '';
+    document.getElementById("cb").value = state.cb || '';
+    document.getElementById("tad").value = state.tad || '';
+    document.getElementById("riskPercent").value = state.riskPercent || 10;
+
+    pnl = state.pnl || 0;
+    tradeHistory = state.tradeHistory || [];
+    winStreak = state.winStreak || 0;
+    lossStreak = state.lossStreak || 0;
+
+    tradeHistory.forEach(t => updateBubbles(t.win));
+    updateStreakDisplay();
+    updateWinRate();
+    updateRisk();
+  }
 
   function updateRisk() {
     const ib = parseFloat(document.getElementById("ib").value) || 0;
@@ -188,6 +272,8 @@
     document.getElementById("riskBox").textContent = `Current Risk: $${risk.toFixed(2)}`;
     document.getElementById("ddBox").textContent = `$${dd.toFixed(2)}`;
     document.getElementById("ddLeftBox").textContent = `$${ddLeft.toFixed(2)}`;
+
+    saveState();
   }
 
   function logTrade(win) {
@@ -198,6 +284,7 @@
     updateStreak(win);
     updateWinRate();
     showQuote();
+    saveState();
   }
 
   function undoLastTrade() {
@@ -210,6 +297,7 @@
     updateStreakDisplay();
     updateWinRate();
     document.getElementById("quoteBox").textContent = "";
+    saveState();
   }
 
   function updateBubbles(win) {
@@ -245,18 +333,7 @@
     document.getElementById(id).addEventListener("input", updateRisk)
   );
 
-  updateRisk();
-</script>
-
-<!-- Register Service Worker for PWA -->
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('service-worker.js')
-        .then(reg => console.log('✅ Service Worker registered'))
-        .catch(err => console.error('❌ Service Worker registration failed:', err));
-    });
-  }
+  loadState();
 </script>
 </body>
 </html>
