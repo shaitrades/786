@@ -3,206 +3,220 @@
 <head>
   <meta charset="UTF-8">
   <title>ENIGMA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#00bfff">
+  <link rel="manifest" href="manifest.json">
   <style>
+    html { font-size: 18px; }
+    @media (max-width: 480px) { html { font-size: 20px; } }
     body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
       background: #000;
       color: #fff;
-      font-family: Arial, sans-serif;
       padding: 20px;
       text-align: center;
+      overflow-x: hidden;
     }
-
+    input, button {
+      padding: 10px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 5px;
+      margin: 5px;
+    }
     .section {
       margin-bottom: 20px;
     }
-
-    input, button {
-      padding: 10px;
-      margin: 5px;
-      font-size: 16px;
-      border-radius: 5px;
-      border: none;
+    .bold { font-weight: bold; }
+    .risk { color: #00bfff; font-size: 1.5rem; }
+    .dd-left { font-size: 1.1rem; color: #00ffff; }
+    .history-container {
+      text-align: left;
+      margin-top: 10px;
     }
-
-    input[type="number"] {
-      width: 100px;
-      background: #1a1a1a;
-      color: #fff;
-      border: 1px solid #333;
-    }
-
-    button {
-      background: #444;
-      color: #fff;
-    }
-
-    .highlight {
-      font-size: 18px;
+    details summary {
       font-weight: bold;
-      margin-top: 10px;
-      color: #00bfff;
+      cursor: pointer;
+      background: #111;
+      padding: 10px;
+      border-radius: 5px;
     }
-
-    .quote-box {
-      margin-top: 10px;
-      font-style: italic;
-      font-size: 15px;
-      color: #99f;
+    .history-log {
+      background: #1a1a1a;
+      padding: 10px;
+      border-radius: 5px;
+      max-height: 150px;
+      overflow-y: auto;
+      font-size: 0.9rem;
     }
-
-    .buttons {
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 10px;
+    .sim-controls button {
+      padding: 12px;
+      font-size: 1rem;
+      margin: 5px;
     }
-
-    .win-btn { background: #28a745; }
-    .loss-btn { background: #dc3545; }
-    .undo-btn { background: #ff9900; }
-
+    .win { background: #28a745; color: white; }
+    .loss { background: #dc3545; color: white; }
+    .undo { background: #ff9900; color: white; }
     .bubble-container {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
       gap: 6px;
-      margin: 15px 0;
+      margin-top: 15px;
     }
-
     .bubble {
       width: 20px;
       height: 20px;
       border-radius: 50%;
     }
-
-    .win { background: #28a745; }
-    .loss { background: #dc3545; }
+    .bubble.win { background: #28a745; }
+    .bubble.loss { background: #dc3545; }
+    .quote-box {
+      font-size: 1rem;
+      margin-top: 15px;
+      color: #aaa;
+    }
   </style>
 </head>
 <body>
 
-<!-- Drawdown Calculator -->
+<!-- Calculator Section -->
 <div class="section">
-  <input type="number" id="ib" placeholder="IB">
-  <input type="number" id="cb" placeholder="CB">
-  <input type="number" id="tad" placeholder="TAD">
-  <input type="number" id="riskPercent" placeholder="Risk %" value="10">
+  <div class="risk">Current Risk: <span id="currentRisk">$0.00</span></div>
+  <div class="dd-left">DD Left: <span id="ddLeft">$0.00</span></div>
+
+  <div>
+    IB: <input type="number" id="ib" placeholder="Initial" />
+    CB: <input type="number" id="cb" placeholder="Current" />
+    TAD: <input type="number" id="tad" placeholder="Total DD" />
+    <input type="number" id="ddPercent" placeholder="% Risk" value="10" style="width:60px;">%
+    <button onclick="updateDrawdown()">Update</button>
+  </div>
+
+  <div class="history-container">
+    <details>
+      <summary>📜 History</summary>
+      <div class="history-log" id="historyLog"></div>
+    </details>
+    <div style="font-size: 0.9rem; margin-top: 6px;">
+      Current DD: <span id="currentDD">$0.00</span>
+    </div>
+  </div>
 </div>
 
-<div class="section highlight" id="riskBox">Current Risk: $0.00</div>
-<div class="section" style="font-size: 14px;">Current DD: <span id="ddBox">$0.00</span> | DD Left: <span id="ddLeftBox">$0.00</span></div>
-
-<!-- ENIGMA Simulator -->
-<div class="section buttons">
-  <button class="win-btn" onclick="logTrade(true)">Win</button>
-  <button class="loss-btn" onclick="logTrade(false)">Loss</button>
-  <button class="undo-btn" onclick="undoLastTrade()">Undo</button>
+<!-- Simulator Section -->
+<div class="section sim-controls">
+  <button class="win" onclick="logTrade(true)">Win</button>
+  <button class="loss" onclick="logTrade(false)">Loss</button>
+  <button class="undo" onclick="undoLastTrade()">Undo</button>
+  <div id="streakDisplay">Streak: 0</div>
+  <div id="winRateBox">Win Rate: 0%</div>
 </div>
 
-<div class="section" id="streakBox">Streak: 0</div>
-<div class="section" id="winRateBox">Win Rate: 0%</div>
 <div class="bubble-container" id="bubbleContainer"></div>
 <div class="quote-box" id="quoteBox"></div>
 
-<!-- Audio -->
 <audio id="winSound" src="https://assets.mixkit.co/sfx/download/mixkit-achievement-bell-600.wav"></audio>
 <audio id="lossSound" src="https://assets.mixkit.co/sfx/download/mixkit-wrong-answer-fail-notification-946.wav"></audio>
 
 <script>
-  let pnl = 0;
-  let ib = 0, cb = 0, tad = 0, riskPercent = 10;
-  let winStreak = 0, lossStreak = 0;
-  let tradeHistory = [];
-
-  const quoteBox = document.getElementById("quoteBox");
+  let ib = 0, cb = 0, tad = 0, ddPercent = 10;
+  let trades = [], pnl = 0, streak = 0, lossStreak = 0, winStreak = 0;
   const quotes = [
-    "Focus on process, not outcome.",
-    "A single trade means nothing. Series matters.",
-    "You can win and still make a bad decision.",
-    "Even a perfect setup can lose — that's the game.",
-    "Good traders bet probabilities, not certainties.",
-    "Discipline over drama.",
-    "Probabilities, not predictions.",
-    "Success is a curve, not a coin flip.",
-    "A trade is a sample, not a signal.",
-    "Don't marry your bias — divorce quickly."
+    "Stay calm and stick to your plan.",
+    "A single loss doesn't define your strategy.",
+    "Winning is about probability, not perfection.",
+    "Manage risk. Trust the math.",
+    "Your edge plays out over time.",
+    "Think long-term, not just next trade."
   ];
 
-  function updateRisk() {
-    ib = parseFloat(document.getElementById("ib").value) || 0;
-    cb = parseFloat(document.getElementById("cb").value) || 0;
-    tad = parseFloat(document.getElementById("tad").value) || 0;
-    riskPercent = parseFloat(document.getElementById("riskPercent").value) || 0;
+  function updateDrawdown() {
+    ib = parseFloat(document.getElementById('ib').value) || 0;
+    cb = parseFloat(document.getElementById('cb').value) || 0;
+    tad = parseFloat(document.getElementById('tad').value) || 0;
+    ddPercent = parseFloat(document.getElementById('ddPercent').value) || 10;
 
-    const dd = Math.max(ib - cb, 0);
-    const ddLeft = Math.max(tad - dd, 0);
-    const currentRisk = (cb >= ib ? tad : ddLeft) * (riskPercent / 100);
+    const currentDD = ib - cb;
+    const ddLeft = tad - currentDD;
+    let risk = 0;
 
-    document.getElementById("ddBox").textContent = `$${dd.toFixed(2)}`;
-    document.getElementById("ddLeftBox").textContent = `$${ddLeft.toFixed(2)}`;
-    document.getElementById("riskBox").textContent = `Current Risk: $${currentRisk.toFixed(2)}`;
+    if (cb >= ib) {
+      risk = (tad * ddPercent) / 100;
+    } else {
+      risk = (ddLeft * ddPercent) / 100;
+    }
+
+    document.getElementById('currentRisk').textContent = `$${risk.toFixed(2)}`;
+    document.getElementById('ddLeft').textContent = `$${ddLeft.toFixed(2)}`;
+    document.getElementById('currentDD').textContent = `$${currentDD.toFixed(2)}`;
+    addToHistory(`CB: $${cb} | IB: $${ib} | Risk: $${risk.toFixed(2)} | DD Left: $${ddLeft.toFixed(2)}`);
   }
 
-  function logTrade(win) {
-    const r = win ? 2 : -1;
-    tradeHistory.push({ win, r });
+  function addToHistory(msg) {
+    const log = document.getElementById("historyLog");
+    const time = new Date().toLocaleTimeString();
+    const div = document.createElement("div");
+    div.textContent = `[${time}] ${msg}`;
+    log.prepend(div);
+  }
+
+  function logTrade(isWin) {
+    const r = isWin ? 2 : -1;
     pnl += r;
-    createBubble(win);
-    win ? winStreak++ && (lossStreak = 0) : lossStreak++ && (winStreak = 0);
-    document.getElementById(win ? "winSound" : "lossSound").play();
+    trades.push(isWin);
+    streak++;
+    isWin ? (winStreak++, lossStreak = 0) : (lossStreak++, winStreak = 0);
+    isWin ? document.getElementById('winSound').play() : document.getElementById('lossSound').play();
     updateWinRate();
     updateStreak();
-    showQuote(win);
+    showQuote();
+    createBubble(isWin);
   }
 
   function undoLastTrade() {
-    if (!tradeHistory.length) return;
-    const last = tradeHistory.pop();
-    pnl -= last.r;
-    const bubbles = document.querySelectorAll('.bubble');
-    if (bubbles.length) bubbles[bubbles.length - 1].remove();
-    winStreak = 0;
-    lossStreak = 0;
+    if (!trades.length) return;
+    const last = trades.pop();
+    pnl -= last ? 2 : -1;
+    document.querySelectorAll('.bubble').at(-1)?.remove();
+    winStreak = 0; lossStreak = 0;
     updateWinRate();
     updateStreak();
-    quoteBox.textContent = '';
   }
 
   function updateWinRate() {
-    const wins = tradeHistory.filter(t => t.win).length;
-    const total = tradeHistory.length;
+    const total = trades.length;
+    const wins = trades.filter(Boolean).length;
     const rate = total ? ((wins / total) * 100).toFixed(1) : 0;
-    document.getElementById("winRateBox").textContent = `Win Rate: ${rate}%`;
+    document.getElementById('winRateBox').textContent = `Win Rate: ${rate}%`;
   }
 
   function updateStreak() {
-    let msg = "Streak: ";
-    if (winStreak >= 3) msg += `${winStreak} Wins in a Row!`;
-    else if (lossStreak >= 3) msg += `${lossStreak} Losses...`;
-    else if (winStreak > 0) msg += `${winStreak} Win`;
-    else if (lossStreak > 0) msg += `${lossStreak} Loss`;
-    else msg += `0`;
-    document.getElementById("streakBox").textContent = msg;
+    let msg = 'Streak: ';
+    msg += winStreak >= 3 ? `${winStreak} Wins 🔥` :
+           lossStreak >= 3 ? `${lossStreak} Losses 🧊` :
+           winStreak > 0 ? `${winStreak} Win` :
+           lossStreak > 0 ? `${lossStreak} Loss` : '0';
+    document.getElementById('streakDisplay').textContent = msg;
   }
 
-  function createBubble(win) {
-    const b = document.createElement("div");
-    b.className = `bubble ${win ? 'win' : 'loss'}`;
-    document.getElementById("bubbleContainer").appendChild(b);
+  function createBubble(isWin) {
+    const bubble = document.createElement('div');
+    bubble.className = `bubble ${isWin ? 'win' : 'loss'}`;
+    document.getElementById('bubbleContainer').appendChild(bubble);
   }
 
-  function showQuote(win) {
+  function showQuote() {
     const q = quotes[Math.floor(Math.random() * quotes.length)];
-    quoteBox.textContent = `"${q}"`;
+    document.getElementById('quoteBox').textContent = q;
   }
 
-  document.getElementById("ib").addEventListener("input", updateRisk);
-  document.getElementById("cb").addEventListener("input", updateRisk);
-  document.getElementById("tad").addEventListener("input", updateRisk);
-  document.getElementById("riskPercent").addEventListener("input", updateRisk);
-
-  updateRisk();
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js')
+      .then(() => console.log("✅ Service Worker Registered"))
+      .catch(err => console.error("❌ Service Worker Error:", err));
+  }
 </script>
 </body>
 </html>
