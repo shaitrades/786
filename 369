@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ENIGMA</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #000;
+      color: #fff;
+      padding: 20px;
+      text-align: center;
+    }
+
+    input, button {
+      padding: 8px;
+      margin: 4px;
+      border: none;
+      border-radius: 5px;
+      font-size: 14px;
+    }
+
+    input[type="number"] {
+      width: 80px;
+    }
+
+    .container {
+      background: #111;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 30px;
+    }
+
+    .highlight {
+      color: #00bfff;
+      font-weight: bold;
+      margin: 10px 0;
+    }
+
+    .small-text {
+      font-size: 12px;
+      color: #ccc;
+    }
+
+    .row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .history-entry {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      padding: 2px 0;
+    }
+
+    .bubble-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 6px;
+      margin: 15px 0;
+    }
+
+    .bubble {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+    }
+
+    .win { background: #28a745; }
+    .loss { background: #dc3545; }
+
+    .buttons {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .win-btn { background: #28a745; color: white; }
+    .loss-btn { background: #dc3545; color: white; }
+    .undo-btn { background: #ff9900; color: white; }
+
+    #cooldownOverlay, #tiltAlert, #lockoutScreen {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.9);
+      color: #fff;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      z-index: 10;
+    }
+
+    .quote {
+      font-size: 18px;
+      margin-top: 10px;
+      max-width: 300px;
+    }
+
+    .dropdown {
+      margin-top: 15px;
+    }
+
+    .dropdown-btn {
+      background-color: #222;
+      color: #00ccff;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .dropdown-content {
+      display: none;
+      background-color: #1a1a1a;
+      margin-top: 10px;
+      padding: 10px;
+      border: 1px solid #333;
+      border-radius: 5px;
+      max-height: 150px;
+      overflow-y: auto;
+      text-align: left;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Drawdown Calculator -->
+<div class="container">
+  <div class="row">
+    <label>IB</label>
+    <input type="number" id="ib" placeholder="Initial Balance">
+    <label>CB</label>
+    <input type="number" id="cb" placeholder="Current Balance" onchange="updateDrawdown()">
+    <label>TAD</label>
+    <input type="number" id="tad" placeholder="Allowed DD">
+    <label>Risk%</label>
+    <input type="number" id="riskPercent" placeholder="10" value="10">
+  </div>
+
+  <div class="highlight" style="font-size: 18px;">Current Risk: <span id="risk">$0.00</span></div>
+  <div class="highlight">DD Left: <span id="ddLeft">$0.00</span></div>
+
+  <div class="dropdown">
+    <button class="dropdown-btn" onclick="toggleHistory()">📜 Show/Hide History</button>
+    <div class="dropdown-content" id="historyLog"></div>
+  </div>
+
+  <div class="small-text">Current DD: <span id="currentDD">$0.00</span></div>
+
+  <button onclick="updateDrawdown()">Update</button>
+</div>
+
+<!-- ENIGMA Simulator -->
+<div class="container">
+  <div class="buttons">
+    <input type="number" id="rValueInput" placeholder="R" step="0.1">
+    <button class="win-btn" onclick="logTrade(true)">Win</button>
+    <button class="loss-btn" onclick="logTrade(false)">Loss</button>
+    <button class="undo-btn" onclick="undoLastTrade()">Undo</button>
+  </div>
+
+  <div id="streakDisplay">Streak: 0</div>
+  <div id="winRateBox">Win Rate: 0%</div>
+  <div class="bubble-container" id="bubbleContainer"></div>
+</div>
+
+<!-- Overlays -->
+<div id="cooldownOverlay">
+  <h2>Cooldown Activated</h2>
+  <div class="quote" id="cooldownQuote"></div>
+</div>
+
+<div id="tiltAlert">
+  <h2>Slow Down</h2>
+  <p>You're trading too fast. Step back for a moment.</p>
+</div>
+
+<div id="lockoutScreen">
+  <h2>Session Locked</h2>
+  <p>You've hit 3 losses. Take a break and return with focus.</p>
+</div>
+
+<!-- Sounds -->
+<audio id="winSound" src="https://assets.mixkit.co/sfx/download/mixkit-achievement-bell-600.wav"></audio>
+<audio id="lossSound" src="https://assets.mixkit.co/sfx/download/mixkit-wrong-answer-fail-notification-946.wav"></audio>
+
+<script>
+  function updateDrawdown() {
+    const ib = parseFloat(document.getElementById("ib").value);
+    const cb = parseFloat(document.getElementById("cb").value);
+    const tad = parseFloat(document.getElementById("tad").value);
+    const riskPercent = parseFloat(document.getElementById("riskPercent").value) || 10;
+
+    if (isNaN(ib) || isNaN(cb) || isNaN(tad)) return;
+
+    const dd = Math.max(ib - cb, 0);  // drawdown never negative
+    const ddLeft = tad - dd;
+    const risk = ddLeft * (riskPercent / 100);
+
+    document.getElementById("currentDD").textContent = `$${dd.toFixed(2)}`;
+    document.getElementById("ddLeft").textContent = `$${ddLeft.toFixed(2)}`;
+    document.getElementById("risk").textContent = `$${risk.toFixed(2)}`;
+
+    localStorage.setItem("ib", ib);
+    localStorage.setItem("cb", cb);
+    localStorage.setItem("tad", tad);
+    localStorage.setItem("riskPercent", riskPercent);
+
+    addToHistory(cb);
+  }
+
+  function addToHistory(cb) {
+    const log = document.getElementById("historyLog");
+    const time = new Date().toLocaleTimeString();
+    const div = document.createElement("div");
+    div.className = "history-entry";
+    div.textContent = `[${time}] CB: $${cb.toFixed(2)}`;
+    log.prepend(div);
+  }
+
+  function toggleHistory() {
+    const log = document.getElementById("historyLog");
+    log.style.display = log.style.display === "block" ? "none" : "block";
+  }
+
+  window.onload = function() {
+    const ib = localStorage.getItem("ib");
+    const cb = localStorage.getItem("cb");
+    const tad = localStorage.getItem("tad");
+    const rp = localStorage.getItem("riskPercent");
+    if (ib) document.getElementById("ib").value = ib;
+    if (cb) document.getElementById("cb").value = cb;
+    if (tad) document.getElementById("tad").value = tad;
+    if (rp) document.getElementById("riskPercent").value = rp;
+    if (ib && cb && tad) updateDrawdown();
+    loadData();
+  };
+
+  // Simulator Logic
+  let tradeHistory = [], currentPnL = 0, winStreak = 0, lossStreak = 0;
+  let lastTradeTime = 0, recentTradeCount = 0;
+
+  function logTrade(isWin) {
+    if (document.getElementById('lockoutScreen').style.display === 'flex') return;
+    const now = Date.now();
+    if (now - lastTradeTime < 60000) {
+      recentTradeCount++;
+      if (recentTradeCount >= 2) {
+        document.getElementById('tiltAlert').style.display = 'flex';
+        setTimeout(() => document.getElementById('tiltAlert').style.display = 'none', 2500);
+      }
+    } else {
+      recentTradeCount = 1;
+    }
+    lastTradeTime = now;
+
+    const rInput = parseFloat(document.getElementById("rValueInput").value);
+    const r = isNaN(rInput) || rInput <= 0 ? (isWin ? 2 : -1) : (isWin ? rInput : -rInput);
+    tradeHistory.push({ win: isWin, r });
+    currentPnL += r;
+
+    createBubble(isWin);
+    isWin ? winStreak++ && (lossStreak = 0) : lossStreak++ && (winStreak = 0);
+    isWin ? document.getElementById('winSound').play() : document.getElementById('lossSound').play();
+
+    if (lossStreak >= 3) {
+      document.getElementById('lockoutScreen').style.display = 'flex';
+      return;
+    }
+
+    if (!isWin) activateCooldown();
+
+    updateStreakDisplay();
+    updateWinRate();
+    saveData();
+  }
+
+  function undoLastTrade() {
+    if (!tradeHistory.length) return;
+    const last = tradeHistory.pop();
+    currentPnL -= last.r;
+    const bubbles = document.querySelectorAll('.bubble');
+    if (bubbles.length) bubbles[bubbles.length - 1].remove();
+    winStreak = 0; lossStreak = 0;
+    updateStreakDisplay();
+    updateWinRate();
+    saveData();
+  }
+
+  function createBubble(isWin) {
+    const bubble = document.createElement('div');
+    bubble.className = `bubble ${isWin ? 'win' : 'loss'}`;
+    document.getElementById('bubbleContainer').appendChild(bubble);
+  }
+
+  function updateStreakDisplay() {
+    const msg = winStreak >= 3 ? `${winStreak} Wins in a Row!` :
+                lossStreak >= 3 ? `${lossStreak} Losses...` :
+                winStreak > 0 ? `${winStreak} Win` :
+                lossStreak > 0 ? `${lossStreak} Loss` : '0';
+    document.getElementById('streakDisplay').textContent = `Streak: ${msg}`;
+  }
+
+  function updateWinRate() {
+    const total = tradeHistory.length;
+    const wins = tradeHistory.filter(t => t.win).length;
+    const rate = total ? ((wins / total) * 100).toFixed(1) : 0;
+    document.getElementById('winRateBox').textContent = `Win Rate: ${rate}%`;
+  }
+
+  function activateCooldown() {
+    const overlay = document.getElementById('cooldownOverlay');
+    const quotes = [
+      "Losses are part of the process.", "Breathe. Regain clarity.",
+      "Stay calm and composed.", "Reset your mind. Trade smart.",
+      "You're not your last trade.", "Discipline > Emotion."
+    ];
+    document.getElementById('cooldownQuote').textContent = quotes[Math.floor(Math.random() * quotes.length)];
+    overlay.style.display = 'flex';
+    setTimeout(() => overlay.style.display = 'none', 10000); // 10s cooldown
+  }
+
+  function saveData() {
+    localStorage.setItem('tradeHistory', JSON.stringify(tradeHistory));
+    localStorage.setItem('currentPnL', currentPnL);
+  }
+
+  function loadData() {
+    const saved = JSON.parse(localStorage.getItem('tradeHistory'));
+    const savedPnL = parseFloat(localStorage.getItem('currentPnL'));
+    if (!saved || isNaN(savedPnL)) return;
+    tradeHistory = saved;
+    currentPnL = savedPnL;
+    document.getElementById('bubbleContainer').innerHTML = '';
+    tradeHistory.forEach(t => createBubble(t.win));
+    updateWinRate();
+    updateStreakDisplay();
+  }
+</script>
+</body>
+</html>
