@@ -2,120 +2,96 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>ENIGMA</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#000000">
   <style>
-    :root {
-      --bg: #f4f4f7;
-      --fg: #222;
-      --card: #fff;
-      --muted: #666;
-      --input: #f9f9f9;
-      --border: #ccc;
-      --accent: #007aff;
-    }
-
-    body.dark {
-      --bg: #000;
-      --fg: #fff;
-      --card: #111;
-      --muted: #aaa;
-      --input: #1a1a1a;
-      --border: #333;
-      --accent: #0af;
+    * {
+      box-sizing: border-box;
     }
 
     body {
-      background: var(--bg);
-      color: var(--fg);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       margin: 0;
       padding: 0;
+      background: #f4f4f7;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       display: flex;
       justify-content: center;
     }
 
     .app-container {
-      background: var(--card);
-      border-radius: 20px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-      padding: 24px;
-      max-width: 400px;
-      width: 100%;
-      margin: 20px;
-    }
-
-    .toggle-container {
-      text-align: right;
-      font-size: 14px;
-      margin-bottom: 10px;
-    }
-
-    .toggle-container input {
-      transform: scale(1.3);
+      background: #fff;
+      width: 100vw;
+      max-width: 480px;
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
     .input-row {
+      width: 100%;
       display: flex;
       justify-content: space-between;
+      gap: 12px;
       margin-bottom: 12px;
     }
 
     .input-group {
+      flex: 1;
       display: flex;
       flex-direction: column;
-      width: 48%;
     }
 
     label {
-      font-size: 12px;
-      color: var(--muted);
+      font-size: 13px;
+      color: #444;
       margin-bottom: 4px;
     }
 
     input[type="number"] {
-      padding: 10px;
-      border: 1px solid var(--border);
-      border-radius: 12px;
+      padding: 12px;
       font-size: 16px;
-      background: var(--input);
-      color: var(--fg);
+      border-radius: 12px;
+      border: 1px solid #ccc;
+      background: #f9f9f9;
       text-align: center;
     }
 
     .summary {
-      background: var(--input);
+      width: 100%;
+      background: #f1f3f5;
       border-radius: 14px;
       padding: 14px;
-      margin-top: 20px;
+      margin-top: 12px;
+      font-size: 15px;
+      color: #333;
       text-align: center;
-      font-size: 14px;
-      color: var(--fg);
     }
 
     .summary .risk {
       font-weight: bold;
-      font-size: 16px;
-      color: var(--accent);
-      margin-bottom: 5px;
+      font-size: 17px;
+      color: #007aff;
     }
 
     .buttons {
       display: flex;
       justify-content: space-between;
+      width: 100%;
       margin-top: 20px;
+      gap: 10px;
     }
 
     button {
       flex: 1;
-      margin: 0 5px;
       padding: 14px;
+      border: none;
       border-radius: 14px;
       font-size: 16px;
-      border: none;
-      cursor: pointer;
       color: white;
+      cursor: pointer;
     }
 
     .win-btn { background: #34c759; }
@@ -127,7 +103,7 @@
       flex-wrap: wrap;
       gap: 6px;
       justify-content: center;
-      margin-top: 20px;
+      margin-top: 16px;
     }
 
     .bubble {
@@ -141,21 +117,16 @@
 
     .quote-box {
       font-size: 13px;
-      color: var(--muted);
+      color: #666;
+      margin-top: 10px;
       text-align: center;
-      margin-top: 12px;
       font-style: italic;
+      max-width: 90%;
     }
   </style>
 </head>
 <body>
   <div class="app-container">
-    <div class="toggle-container">
-      <label>
-        🌙 <input type="checkbox" id="themeToggle" />
-      </label>
-    </div>
-
     <div class="input-row">
       <div class="input-group">
         <label>IB</label>
@@ -195,125 +166,133 @@
     <div class="quote-box" id="quoteBox"></div>
   </div>
 
-  <script>
-    let pnl = 0;
-    let tradeHistory = [], winStreak = 0, lossStreak = 0;
+<script>
+  let pnl = 0;
+  let tradeHistory = [], winStreak = 0, lossStreak = 0;
 
-    const quotes = [
-      "Probabilities, not guarantees.",
-      "Focus on process, not outcome.",
-      "Even perfect trades can lose.",
-      "Risk is the cost of uncertainty.",
-      "Edge is found in execution.",
-      "Discipline creates consistency.",
-      "No single trade defines you.",
-      "The market doesn’t owe you anything.",
-      "Statistical edges play out over time.",
-      "The outcome is a sample, not your skill."
-    ];
+  const quotes = [
+    "Focus on process, not outcome.",
+    "Even a perfect setup can lose — that’s the game.",
+    "Probabilities, not predictions.",
+    "A trade is a sample, not a signal.",
+    "Discipline > Emotion.",
+    "Manage risk, not results.",
+    "Expect variance. Respect probability.",
+    "Be consistent. Results follow."
+  ];
 
-    function updateRisk() {
-      const ib = parseFloat(document.getElementById("ib").value) || 0;
-      const cb = parseFloat(document.getElementById("cb").value) || 0;
-      const tad = parseFloat(document.getElementById("tad").value) || 0;
-      const percent = parseFloat(document.getElementById("riskPercent").value) || 10;
+  function updateRisk() {
+    const ib = parseFloat(document.getElementById("ib").value) || 0;
+    const cb = parseFloat(document.getElementById("cb").value) || 0;
+    const tad = parseFloat(document.getElementById("tad").value) || 0;
+    const percent = parseFloat(document.getElementById("riskPercent").value) || 10;
 
-      const dd = Math.max(ib - cb, 0);
-      const ddLeft = Math.max(tad - dd, 0);
-      const risk = (cb >= ib ? tad : ddLeft) * percent / 100;
+    const dd = Math.max(ib - cb, 0);
+    const ddLeft = Math.max(tad - dd, 0);
+    const risk = (cb >= ib ? tad : ddLeft) * percent / 100;
 
-      document.getElementById("riskBox").textContent = `Current Risk: $${risk.toFixed(2)}`;
-      document.getElementById("ddBox").textContent = `$${dd.toFixed(2)}`;
-      document.getElementById("ddLeftBox").textContent = `$${ddLeft.toFixed(2)}`;
+    document.getElementById("riskBox").textContent = `Current Risk: $${risk.toFixed(2)}`;
+    document.getElementById("ddBox").textContent = `$${dd.toFixed(2)}`;
+    document.getElementById("ddLeftBox").textContent = `$${ddLeft.toFixed(2)}`;
 
-      // Save inputs
-      localStorage.setItem("ib", ib);
-      localStorage.setItem("cb", cb);
-      localStorage.setItem("tad", tad);
-      localStorage.setItem("riskPercent", percent);
-    }
+    localStorage.setItem('IB', ib);
+    localStorage.setItem('CB', cb);
+    localStorage.setItem('TAD', tad);
+    localStorage.setItem('RISK_PERCENT', percent);
+  }
 
-    function logTrade(win) {
-      const r = win ? 2 : -1;
-      tradeHistory.push({ win, r });
-      pnl += r;
-      updateBubbles(win);
-      updateStreak(win);
-      updateWinRate();
-      showQuote();
-    }
+  function logTrade(win) {
+    const r = win ? 2 : -1;
+    tradeHistory.push({ win, r });
+    pnl += r;
+    updateBubbles(win);
+    updateStreak(win);
+    updateWinRate();
+    showQuote();
+    saveTrades();
+  }
 
-    function undoLastTrade() {
-      const last = tradeHistory.pop();
-      if (!last) return;
-      pnl -= last.r;
-      document.querySelectorAll('.bubble').item(-1)?.remove();
-      winStreak = 0;
-      lossStreak = 0;
-      updateStreakDisplay();
-      updateWinRate();
-      document.getElementById("quoteBox").textContent = "";
-    }
+  function undoLastTrade() {
+    const last = tradeHistory.pop();
+    if (!last) return;
+    pnl -= last.r;
+    document.querySelectorAll('.bubble').item(-1)?.remove();
+    winStreak = 0;
+    lossStreak = 0;
+    updateStreakDisplay();
+    updateWinRate();
+    document.getElementById("quoteBox").textContent = "";
+    saveTrades();
+  }
 
-    function updateBubbles(win) {
-      const b = document.createElement("div");
-      b.className = `bubble ${win ? 'win' : 'loss'}`;
-      document.getElementById("bubbleContainer").appendChild(b);
-    }
+  function updateBubbles(win) {
+    const b = document.createElement("div");
+    b.className = `bubble ${win ? 'win' : 'loss'}`;
+    document.getElementById("bubbleContainer").appendChild(b);
+  }
 
-    function updateStreak(win) {
-      if (win) { winStreak++; lossStreak = 0; }
-      else { lossStreak++; winStreak = 0; }
-      updateStreakDisplay();
-    }
+  function updateStreak(win) {
+    if (win) { winStreak++; lossStreak = 0; }
+    else { lossStreak++; winStreak = 0; }
+    updateStreakDisplay();
+  }
 
-    function updateStreakDisplay() {
-      const s = winStreak ? `${winStreak} Win Streak` : lossStreak ? `${lossStreak} Losses` : '0';
-      document.getElementById("streakBox").textContent = `Streak: ${s}`;
-    }
+  function updateStreakDisplay() {
+    const s = winStreak ? `${winStreak} Win Streak` : lossStreak ? `${lossStreak} Losses` : '0';
+    document.getElementById("streakBox").textContent = `Streak: ${s}`;
+  }
 
-    function updateWinRate() {
-      const wins = tradeHistory.filter(t => t.win).length;
-      const total = tradeHistory.length;
-      const rate = total ? (wins / total * 100).toFixed(1) : 0;
-      document.getElementById("winRateBox").textContent = `Win Rate: ${rate}%`;
-    }
+  function updateWinRate() {
+    const wins = tradeHistory.filter(t => t.win).length;
+    const total = tradeHistory.length;
+    const rate = total ? (wins / total * 100).toFixed(1) : 0;
+    document.getElementById("winRateBox").textContent = `Win Rate: ${rate}%`;
+  }
 
-    function showQuote() {
-      const quote = quotes[Math.floor(Math.random() * quotes.length)];
-      document.getElementById("quoteBox").textContent = `"${quote}"`;
-    }
+  function showQuote() {
+    const quote = quotes[Math.floor(Math.random() * quotes.length)];
+    document.getElementById("quoteBox").textContent = `"${quote}"`;
+  }
 
-    function loadSavedInputs() {
-      const ids = ["ib", "cb", "tad", "riskPercent"];
-      ids.forEach(id => {
-        const saved = localStorage.getItem(id);
-        if (saved !== null) {
-          document.getElementById(id).value = saved;
-        }
-      });
-      updateRisk();
-    }
+  function saveTrades() {
+    localStorage.setItem('trades', JSON.stringify(tradeHistory));
+    localStorage.setItem('pnl', pnl);
+  }
 
-    function setupThemeToggle() {
-      const toggle = document.getElementById("themeToggle");
-      const isDark = localStorage.getItem("theme") === "dark";
-      document.body.classList.toggle("dark", isDark);
-      toggle.checked = isDark;
+  function loadSavedData() {
+    const saved = JSON.parse(localStorage.getItem('trades') || "[]");
+    tradeHistory = saved;
+    pnl = parseFloat(localStorage.getItem('pnl')) || 0;
+    document.getElementById("bubbleContainer").innerHTML = "";
+    tradeHistory.forEach(t => {
+      updateBubbles(t.win);
+    });
+    updateWinRate();
+    updateStreakDisplay();
 
-      toggle.addEventListener("change", () => {
-        const useDark = toggle.checked;
-        document.body.classList.toggle("dark", useDark);
-        localStorage.setItem("theme", useDark ? "dark" : "light");
-      });
-    }
+    // Load saved inputs
+    ["IB", "CB", "TAD", "RISK_PERCENT"].forEach(key => {
+      const el = document.getElementById(key.toLowerCase());
+      if (el && localStorage.getItem(key)) {
+        el.value = localStorage.getItem(key);
+      }
+    });
+    updateRisk();
+  }
 
-    ["ib", "cb", "tad", "riskPercent"].forEach(id =>
-      document.getElementById(id).addEventListener("input", updateRisk)
-    );
+  ["ib", "cb", "tad", "riskPercent"].forEach(id =>
+    document.getElementById(id).addEventListener("input", updateRisk)
+  );
 
-    loadSavedInputs();
-    setupThemeToggle();
-  </script>
+  loadSavedData();
+</script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js')
+      .then(reg => console.log("Service Worker registered"))
+      .catch(err => console.error("Service Worker registration failed:", err));
+  }
+</script>
 </body>
 </html>
