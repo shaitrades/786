@@ -1,43 +1,83 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title></title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <link rel="manifest" href="manifest.json">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <link rel="manifest" href="manifest.json" />
+  <title>ENIGMA</title>
   <style>
-    html, body {
+    :root {
+      --bg: #f4f4f7;
+      --card: #ffffff;
+      --text: #222;
+      --label: #555;
+      --input: #f9f9f9;
+      --bubble-win: #34c759;
+      --bubble-loss: #ff3b30;
+      --risk: #007aff;
+    }
+
+    [data-theme="dark"] {
+      --bg: #1c1c1e;
+      --card: #2c2c2e;
+      --text: #f5f5f7;
+      --label: #999;
+      --input: #3a3a3c;
+      --bubble-win: #30d158;
+      --bubble-loss: #ff453a;
+      --risk: #0a84ff;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       margin: 0;
       padding: 0;
-      height: 100%;
-      background: #f4f4f7;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      -webkit-text-size-adjust: 100%;
-      overflow-x: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: start;
+      min-height: 100vh;
     }
 
     .app-container {
-      padding: 20px 14px 60px;
-      box-sizing: border-box;
+      background: var(--card);
+      border-radius: 20px;
+      padding: 24px;
+      max-width: 400px;
       width: 100%;
-      height: 100%;
+      margin: 30px 20px 60px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    }
+
+    .toggle-mode {
+      text-align: right;
+      margin-bottom: 10px;
+    }
+
+    .toggle-mode button {
+      background: none;
+      border: none;
+      color: var(--risk);
+      font-size: 14px;
+      cursor: pointer;
     }
 
     .input-row {
       display: flex;
-      gap: 10px;
-      margin-bottom: 12px;
+      justify-content: space-between;
+      margin-bottom: 14px;
     }
 
     .input-group {
-      flex: 1;
       display: flex;
       flex-direction: column;
+      width: 48%;
     }
 
     label {
-      font-size: 12px;
-      color: #555;
+      font-size: 13px;
+      color: var(--label);
       margin-bottom: 4px;
     }
 
@@ -46,36 +86,36 @@
       border: 1px solid #ccc;
       border-radius: 12px;
       font-size: 16px;
-      background: #fff;
+      background: var(--input);
+      color: var(--text);
       text-align: center;
-      width: 100%;
     }
 
     .summary {
-      background: #f1f3f5;
+      background: var(--input);
       border-radius: 14px;
       padding: 14px;
-      margin-top: 12px;
+      margin-top: 14px;
       text-align: center;
       font-size: 14px;
-      color: #333;
     }
 
     .summary .risk {
       font-weight: bold;
-      font-size: 16px;
-      color: #007aff;
+      font-size: 17px;
+      color: var(--risk);
+      margin-bottom: 6px;
     }
 
     .buttons {
       display: flex;
       justify-content: space-between;
       margin-top: 20px;
-      gap: 10px;
     }
 
     button {
       flex: 1;
+      margin: 0 4px;
       padding: 14px;
       border-radius: 14px;
       font-size: 16px;
@@ -84,8 +124,8 @@
       color: white;
     }
 
-    .win-btn { background: #34c759; }
-    .loss-btn { background: #ff3b30; }
+    .win-btn { background: var(--bubble-win); }
+    .loss-btn { background: var(--bubble-loss); }
     .undo-btn { background: #ff9500; }
 
     .bubble-container {
@@ -93,7 +133,7 @@
       flex-wrap: wrap;
       gap: 6px;
       justify-content: center;
-      margin-top: 16px;
+      margin-top: 20px;
     }
 
     .bubble {
@@ -102,20 +142,22 @@
       border-radius: 50%;
     }
 
-    .win { background: #34c759; }
-    .loss { background: #ff3b30; }
+    .win { background: var(--bubble-win); }
+    .loss { background: var(--bubble-loss); }
 
     .quote-box {
       font-size: 13px;
-      color: #666;
+      color: var(--label);
       text-align: center;
-      margin-top: 12px;
+      margin-top: 14px;
       font-style: italic;
     }
   </style>
 </head>
 <body>
-  <div class="app-container">
+  <div class="app-container" id="app">
+    <div class="toggle-mode"><button onclick="toggleMode()">Toggle Mode</button></div>
+
     <div class="input-row">
       <div class="input-group">
         <label>IB</label>
@@ -149,24 +191,24 @@
       <button class="undo-btn" onclick="undoLastTrade()">Undo</button>
     </div>
 
-    <div id="streakBox" class="summary">Streak: 0</div>
-    <div id="winRateBox" class="summary">Win Rate: 0%</div>
+    <div class="summary" id="streakBox">Streak: 0</div>
+    <div class="summary" id="winRateBox">Win Rate: 0%</div>
     <div class="bubble-container" id="bubbleContainer"></div>
     <div class="quote-box" id="quoteBox"></div>
   </div>
 
   <script>
     let pnl = 0;
-    let tradeHistory = JSON.parse(localStorage.getItem("tradeHistory")) || [];
+    let tradeHistory = JSON.parse(localStorage.getItem("trades")) || [];
     let winStreak = 0, lossStreak = 0;
 
     const quotes = [
-      "Focus on process, not outcome.",
-      "Even a perfect setup can lose — that’s the game.",
-      "Probabilities, not predictions.",
-      "A trade is a sample, not a signal.",
-      "Discipline > Emotion.",
-      "Edge plays out over time, not one trade.",
+      "Probabilities, not certainties.",
+      "A single trade means nothing.",
+      "Trust your edge, not emotions.",
+      "Focus on consistency.",
+      "Good losses protect you.",
+      "Follow your plan, not the market noise.",
     ];
 
     function updateRisk() {
@@ -182,8 +224,6 @@
       document.getElementById("riskBox").textContent = `Current Risk: $${risk.toFixed(2)}`;
       document.getElementById("ddBox").textContent = `$${dd.toFixed(2)}`;
       document.getElementById("ddLeftBox").textContent = `$${ddLeft.toFixed(2)}`;
-
-      saveInputs();
     }
 
     function logTrade(win) {
@@ -201,7 +241,8 @@
       const last = tradeHistory.pop();
       if (!last) return;
       pnl -= last.r;
-      document.querySelectorAll('.bubble').item(-1)?.remove();
+      const bubbles = document.querySelectorAll('.bubble');
+      if (bubbles.length) bubbles[bubbles.length - 1].remove();
       winStreak = 0;
       lossStreak = 0;
       updateStreakDisplay();
@@ -239,39 +280,29 @@
       document.getElementById("quoteBox").textContent = `"${quote}"`;
     }
 
+    function toggleMode() {
+      const theme = document.documentElement.getAttribute("data-theme");
+      document.documentElement.setAttribute("data-theme", theme === "dark" ? "light" : "dark");
+      localStorage.setItem("theme", theme === "dark" ? "light" : "dark");
+    }
+
     function saveData() {
-      localStorage.setItem("tradeHistory", JSON.stringify(tradeHistory));
+      localStorage.setItem("trades", JSON.stringify(tradeHistory));
     }
 
-    function saveInputs() {
-      ["ib", "cb", "tad", "riskPercent"].forEach(id =>
-        localStorage.setItem(id, document.getElementById(id).value)
-      );
-    }
-
-    function loadInputs() {
-      ["ib", "cb", "tad", "riskPercent"].forEach(id => {
-        const val = localStorage.getItem(id);
-        if (val !== null) document.getElementById(id).value = val;
-      });
-      updateRisk();
-    }
-
-    function loadHistory() {
-      tradeHistory.forEach(t => {
-        pnl += t.r;
-        updateBubbles(t.win);
-      });
-      updateStreakDisplay();
-      updateWinRate();
+    function restoreTheme() {
+      const saved = localStorage.getItem("theme") || "light";
+      document.documentElement.setAttribute("data-theme", saved);
     }
 
     ["ib", "cb", "tad", "riskPercent"].forEach(id =>
       document.getElementById(id).addEventListener("input", updateRisk)
     );
 
-    loadInputs();
-    loadHistory();
+    restoreTheme();
+    updateRisk();
+    updateWinRate();
+    tradeHistory.forEach(t => updateBubbles(t.win));
   </script>
 
   <script>
