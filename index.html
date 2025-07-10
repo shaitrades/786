@@ -7,323 +7,273 @@
   <title>ENIGMA</title>
   <style>
     :root {
-      --bg: #f4f4f7;
-      --panel: #fff;
-      --text: #222;
-      --input-bg: #f9f9f9;
-      --summary-bg: #f1f3f5;
-      --risk-color: #007aff;
+      --bg: #f2f1f7;
+      --card: #ffffff;
+      --text: #333;
+      --button: #e0e0e0;
+      --win: #2ecc71;
+      --loss: #e74c3c;
+      --undo: #f39c12;
+      --accent: #3498db;
     }
 
-    .dark {
+    [data-theme="dark"] {
       --bg: #121212;
-      --panel: #1e1e1e;
+      --card: #1e1e1e;
       --text: #f0f0f0;
-      --input-bg: #2c2c2c;
-      --summary-bg: #2a2a2a;
-      --risk-color: #0a84ff;
+      --button: #2c2c2c;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
 
     html, body {
+      font-family: Arial, sans-serif;
       background: var(--bg);
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       color: var(--text);
       height: 100%;
       overflow-x: hidden;
     }
 
-    .app-container {
-      background: var(--panel);
-      border-radius: 20px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-      padding: 20px;
-      max-width: 400px;
+    .container {
+      max-width: 360px;
       margin: 40px auto;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .top-bar {
-      display: flex;
-      justify-content: flex-end;
-    }
-
-    .toggle-mode {
-      font-size: 20px;
-      background: transparent;
-      border: none;
-      cursor: pointer;
-      margin-bottom: 10px;
-    }
-
-    .input-row {
-      display: flex;
-      gap: 10px;
+      padding: 20px;
+      background: var(--card);
+      border-radius: 16px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
     }
 
     .input-group {
-      flex: 1;
       display: flex;
       flex-direction: column;
+      gap: 10px;
+      margin-bottom: 15px;
     }
 
-    label {
-      font-size: 12px;
-      margin-bottom: 4px;
+    .input-pair {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
     }
 
-    input[type="number"] {
+    input {
+      flex: 1;
       padding: 10px;
       border-radius: 10px;
       border: 1px solid #ccc;
-      background: var(--input-bg);
-      text-align: center;
-      font-size: 15px;
+      font-size: 14px;
+      background: var(--bg);
+      color: var(--text);
     }
 
-    .summary {
-      background: var(--summary-bg);
-      border-radius: 12px;
+    .center-box {
+      background: #f2f2f2;
       padding: 12px;
       text-align: center;
+      border-radius: 10px;
+      margin-bottom: 10px;
       font-size: 14px;
     }
 
-    .risk {
-      font-weight: bold;
-      color: var(--risk-color);
-      font-size: 16px;
+    .center-box strong {
+      color: var(--accent);
     }
 
     .buttons {
       display: flex;
+      justify-content: space-between;
       gap: 10px;
+      margin-bottom: 10px;
     }
 
-    button {
+    .buttons button {
       flex: 1;
       padding: 12px;
+      font-size: 16px;
+      font-weight: bold;
       border: none;
       border-radius: 10px;
-      font-size: 16px;
       color: #fff;
       cursor: pointer;
     }
 
-    .win-btn { background: #34c759; }
-    .loss-btn { background: #ff3b30; }
-    .undo-btn { background: #ff9500; }
+    .buttons .win { background: var(--win); }
+    .buttons .loss { background: var(--loss); }
+    .buttons .undo { background: var(--undo); }
 
-    .bubble-container {
+    .row {
+      text-align: center;
+      background: #f2f2f2;
+      border-radius: 10px;
+      padding: 10px;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    .bubbles {
       display: flex;
       flex-wrap: wrap;
-      gap: 6px;
       justify-content: center;
+      gap: 6px;
+      margin-bottom: 20px;
     }
 
     .bubble {
-      width: 16px;
-      height: 16px;
+      width: 14px;
+      height: 14px;
       border-radius: 50%;
     }
 
-    .win { background: #34c759; }
-    .loss { background: #ff3b30; }
+    .bubble.win { background: var(--win); }
+    .bubble.loss { background: var(--loss); }
 
-    .quote-box {
-      font-size: 13px;
-      text-align: center;
-      margin-top: 10px;
-      font-style: italic;
-      color: var(--text);
+    .dark-toggle {
+      position: fixed;
+      top: 12px;
+      right: 12px;
+      font-size: 22px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      z-index: 1000;
     }
   </style>
 </head>
 <body>
-  <div class="top-bar">
-    <button id="modeToggle" class="toggle-mode">🌙</button>
-  </div>
-
-  <div class="app-container">
-    <div class="input-row">
-      <div class="input-group">
-        <label>IB</label>
-        <input type="number" id="ib" placeholder="Initial Balance">
-      </div>
-      <div class="input-group">
-        <label>CB</label>
-        <input type="number" id="cb" placeholder="Current Balance">
-      </div>
+  <button class="dark-toggle" id="themeToggle">🌙</button>
+  <div class="container">
+    <div class="input-group">
+      <input type="number" id="ib" placeholder="Initial Balance">
+      <input type="number" id="cb" placeholder="Current Balance">
+      <input type="number" id="tad" placeholder="Total DD">
+      <input type="number" id="risk" placeholder="Risk %" value="10">
     </div>
 
-    <div class="input-row">
-      <div class="input-group">
-        <label>TAD</label>
-        <input type="number" id="tad" placeholder="Total DD">
-      </div>
-      <div class="input-group">
-        <label>Risk %</label>
-        <input type="number" id="riskPercent" placeholder="10" value="10">
-      </div>
-    </div>
-
-    <div class="summary">
-      <div class="risk" id="riskBox">Current Risk: $0.00</div>
-      <div>DD: <span id="ddBox">$0.00</span> | DD Left: <span id="ddLeftBox">$0.00</span></div>
+    <div class="center-box">
+      <strong id="currentRisk">Current Risk: $0.00</strong><br>
+      <small id="ddDetails">DD: $0.00 | DD Left: $0.00</small>
     </div>
 
     <div class="buttons">
-      <button class="win-btn" onclick="logTrade(true)">Win</button>
-      <button class="loss-btn" onclick="logTrade(false)">Loss</button>
-      <button class="undo-btn" onclick="undoLastTrade()">Undo</button>
+      <button class="win" onclick="recordTrade(true)">Win</button>
+      <button class="loss" onclick="recordTrade(false)">Loss</button>
+      <button class="undo" onclick="undoTrade()">Undo</button>
     </div>
 
-    <div class="summary" id="streakBox">Streak: 0</div>
-    <div class="summary" id="winRateBox">Win Rate: 0%</div>
-    <div class="bubble-container" id="bubbleContainer"></div>
-    <div class="quote-box" id="quoteBox"></div>
+    <div class="row" id="streak">Streak: 0</div>
+    <div class="row" id="winRate">Win Rate: 0%</div>
+    <div class="bubbles" id="bubbleContainer"></div>
   </div>
 
+  <script>
+    const ib = document.getElementById("ib");
+    const cb = document.getElementById("cb");
+    const tad = document.getElementById("tad");
+    const risk = document.getElementById("risk");
+    const currentRisk = document.getElementById("currentRisk");
+    const ddDetails = document.getElementById("ddDetails");
+    const streakEl = document.getElementById("streak");
+    const winRateEl = document.getElementById("winRate");
+    const bubbleContainer = document.getElementById("bubbleContainer");
+
+    let trades = JSON.parse(localStorage.getItem("trades") || "[]");
+
+    function updateRisk() {
+      const ibVal = +ib.value;
+      const cbVal = +cb.value;
+      const tadVal = +tad.value;
+      const riskVal = +risk.value;
+
+      const currRisk = ((cbVal * riskVal) / 100).toFixed(2);
+      const ddUsed = (ibVal - cbVal).toFixed(2);
+      const ddLeft = (tadVal - ddUsed).toFixed(2);
+
+      currentRisk.innerHTML = `Current Risk: $${currRisk}`;
+      ddDetails.innerHTML = `DD: $${ddUsed} | DD Left: $${ddLeft}`;
+    }
+
+    function recordTrade(win) {
+      trades.push(win ? "win" : "loss");
+      localStorage.setItem("trades", JSON.stringify(trades));
+      renderBubbles();
+      updateStats();
+    }
+
+    function undoTrade() {
+      trades.pop();
+      localStorage.setItem("trades", JSON.stringify(trades));
+      renderBubbles();
+      updateStats();
+    }
+
+    function renderBubbles() {
+      bubbleContainer.innerHTML = "";
+      trades.forEach(t => {
+        const b = document.createElement("div");
+        b.className = "bubble " + t;
+        bubbleContainer.appendChild(b);
+      });
+    }
+
+    function updateStats() {
+      const wins = trades.filter(t => t === "win").length;
+      const rate = trades.length ? ((wins / trades.length) * 100).toFixed(1) : 0;
+      winRateEl.innerText = `Win Rate: ${rate}%`;
+
+      let streak = 0;
+      for (let i = trades.length - 1; i >= 0; i--) {
+        if (trades[i] === trades[trades.length - 1]) streak++;
+        else break;
+      }
+      streakEl.innerText = `Streak: ${streak}`;
+    }
+
+    [ib, cb, tad, risk].forEach(input => {
+      input.addEventListener("input", () => {
+        localStorage.setItem(input.id, input.value);
+        updateRisk();
+      });
+    });
+
+    function loadInputs() {
+      [ib, cb, tad, risk].forEach(input => {
+        const saved = localStorage.getItem(input.id);
+        if (saved !== null) input.value = saved;
+      });
+      updateRisk();
+    }
+
+    function toggleTheme() {
+      const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+      document.documentElement.setAttribute("data-theme", isDark ? "light" : "dark");
+      document.getElementById("themeToggle").textContent = isDark ? "🌙" : "☀️";
+      localStorage.setItem("theme", isDark ? "light" : "dark");
+    }
+
+    document.getElementById("themeToggle").onclick = toggleTheme;
+
+    // Restore state
+    loadInputs();
+    renderBubbles();
+    updateStats();
+
+    // Apply theme
+    const savedTheme = localStorage.getItem("theme") || "light";
+    document.documentElement.setAttribute("data-theme", savedTheme);
+    document.getElementById("themeToggle").textContent = savedTheme === "dark" ? "☀️" : "🌙";
+  </script>
+
+  <!-- Service worker -->
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('service-worker.js')
         .then(reg => console.log("Service Worker registered"))
         .catch(err => console.error("Service Worker registration failed:", err));
     }
-
-    const ibInput = document.getElementById("ib");
-    const cbInput = document.getElementById("cb");
-    const tadInput = document.getElementById("tad");
-    const riskInput = document.getElementById("riskPercent");
-    const riskBox = document.getElementById("riskBox");
-    const ddBox = document.getElementById("ddBox");
-    const ddLeftBox = document.getElementById("ddLeftBox");
-    const streakBox = document.getElementById("streakBox");
-    const winRateBox = document.getElementById("winRateBox");
-    const quoteBox = document.getElementById("quoteBox");
-    const bubbleContainer = document.getElementById("bubbleContainer");
-
-    let tradeHistory = JSON.parse(localStorage.getItem("trades") || "[]");
-    let pnl = 0, winStreak = 0, lossStreak = 0;
-
-    const quotes = [
-      "Probabilities, not predictions.",
-      "Focus on process, not outcome.",
-      "A trade is a sample, not a signal.",
-      "Discipline > Emotion.",
-      "No setup has 100% win rate.",
-      "Let the edge play out.",
-      "Trust your process.",
-    ];
-
-    function updateRisk() {
-      const ib = parseFloat(ibInput.value) || 0;
-      const cb = parseFloat(cbInput.value) || 0;
-      const tad = parseFloat(tadInput.value) || 0;
-      const percent = parseFloat(riskInput.value) || 10;
-
-      const dd = Math.max(ib - cb, 0);
-      const ddLeft = Math.max(tad - dd, 0);
-      const risk = (cb >= ib ? tad : ddLeft) * percent / 100;
-
-      riskBox.textContent = `Current Risk: $${risk.toFixed(2)}`;
-      ddBox.textContent = `$${dd.toFixed(2)}`;
-      ddLeftBox.textContent = `$${ddLeft.toFixed(2)}`;
-
-      localStorage.setItem("ib", ib);
-      localStorage.setItem("cb", cb);
-      localStorage.setItem("tad", tad);
-      localStorage.setItem("riskPercent", percent);
-    }
-
-    function logTrade(win) {
-      const r = win ? 2 : -1;
-      tradeHistory.push({ win, r });
-      pnl += r;
-      localStorage.setItem("trades", JSON.stringify(tradeHistory));
-      updateBubbles();
-      updateStreak(win);
-      updateWinRate();
-      showQuote();
-    }
-
-    function undoLastTrade() {
-      const last = tradeHistory.pop();
-      if (!last) return;
-      pnl -= last.r;
-      localStorage.setItem("trades", JSON.stringify(tradeHistory));
-      updateBubbles();
-      winStreak = 0;
-      lossStreak = 0;
-      updateStreakDisplay();
-      updateWinRate();
-      quoteBox.textContent = "";
-    }
-
-    function updateBubbles() {
-      bubbleContainer.innerHTML = "";
-      tradeHistory.forEach(t => {
-        const b = document.createElement("div");
-        b.className = `bubble ${t.win ? 'win' : 'loss'}`;
-        bubbleContainer.appendChild(b);
-      });
-    }
-
-    function updateStreak(win) {
-      if (win) { winStreak++; lossStreak = 0; }
-      else { lossStreak++; winStreak = 0; }
-      updateStreakDisplay();
-    }
-
-    function updateStreakDisplay() {
-      const s = winStreak ? `${winStreak} Win Streak` : lossStreak ? `${lossStreak} Losses` : '0';
-      streakBox.textContent = `Streak: ${s}`;
-    }
-
-    function updateWinRate() {
-      const wins = tradeHistory.filter(t => t.win).length;
-      const total = tradeHistory.length;
-      const rate = total ? (wins / total * 100).toFixed(1) : 0;
-      winRateBox.textContent = `Win Rate: ${rate}%`;
-    }
-
-    function showQuote() {
-      const quote = quotes[Math.floor(Math.random() * quotes.length)];
-      quoteBox.textContent = `"${quote}"`;
-    }
-
-    // Input events
-    [ibInput, cbInput, tadInput, riskInput].forEach(el =>
-      el.addEventListener("input", updateRisk)
-    );
-
-    // Dark mode toggle
-    const toggleBtn = document.getElementById("modeToggle");
-    toggleBtn.addEventListener("click", () => {
-      document.body.classList.toggle("dark");
-      toggleBtn.textContent = document.body.classList.contains("dark") ? "🌞" : "🌙";
-      localStorage.setItem("darkMode", document.body.classList.contains("dark") ? "1" : "0");
-    });
-
-    // Load stored values
-    window.onload = () => {
-      ibInput.value = localStorage.getItem("ib") || "";
-      cbInput.value = localStorage.getItem("cb") || "";
-      tadInput.value = localStorage.getItem("tad") || "";
-      riskInput.value = localStorage.getItem("riskPercent") || 10;
-
-      if (localStorage.getItem("darkMode") === "1") {
-        document.body.classList.add("dark");
-        toggleBtn.textContent = "🌞";
-      }
-
-      updateRisk();
-      updateBubbles();
-      updateWinRate();
-    };
   </script>
 </body>
 </html>
