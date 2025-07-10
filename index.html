@@ -2,137 +2,101 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-  <meta name="theme-color" content="#ffffff"/>
-  <link rel="manifest" href="manifest.json" />
-  <link rel="apple-touch-icon" href="icon.png" />
+  <meta name="viewport" id="viewportMeta" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="manifest" href="manifest.json">
   <title></title>
   <style>
-    :root {
-      --bg-light: #f4f4f7;
-      --bg-dark: #1c1c1e;
-      --text-light: #222;
-      --text-dark: #f5f5f5;
-      --card-light: #ffffff;
-      --card-dark: #2c2c2e;
-      --accent: #007aff;
-    }
-
-    body {
+    html, body {
       margin: 0;
+      padding: 0;
+      background: #f4f4f7;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background-color: var(--bg-light);
-      color: var(--text-light);
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      padding: 20px;
-      min-height: 100vh;
-      transition: all 0.3s ease;
-    }
-
-    body.dark {
-      background-color: var(--bg-dark);
-      color: var(--text-dark);
+      height: 100%;
+      overflow-x: hidden;
     }
 
     .app-container {
-      background: var(--card-light);
-      padding: 20px;
-      border-radius: 16px;
-      width: 100%;
-      max-width: 400px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    }
-
-    body.dark .app-container {
-      background: var(--card-dark);
+      max-width: 420px;
+      margin: auto;
+      padding: 16px;
+      background: #fff;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+      border-radius: 20px;
+      min-height: 92vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
     }
 
     .input-section {
       display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .input-row {
-      display: flex;
-      justify-content: space-between;
+      flex-wrap: wrap;
       gap: 10px;
+      justify-content: space-between;
     }
 
     .input-group {
-      flex: 1;
+      flex: 1 1 45%;
       display: flex;
       flex-direction: column;
     }
 
     label {
       font-size: 12px;
+      color: #555;
       margin-bottom: 4px;
-      color: #666;
     }
 
     input[type="number"] {
       padding: 10px;
       border: 1px solid #ccc;
-      border-radius: 10px;
+      border-radius: 12px;
       font-size: 16px;
+      background: #f9f9f9;
       text-align: center;
-      background-color: #f9f9f9;
-    }
-
-    body.dark input[type="number"] {
-      background: #3a3a3c;
-      color: #fff;
-      border: 1px solid #555;
     }
 
     .summary {
       background: #f1f3f5;
-      border-radius: 12px;
+      border-radius: 14px;
       padding: 12px;
-      margin-top: 20px;
-      font-size: 14px;
+      margin-top: 16px;
       text-align: center;
-    }
-
-    body.dark .summary {
-      background: #2e2e2e;
+      font-size: 14px;
+      color: #333;
     }
 
     .summary .risk {
       font-weight: bold;
-      font-size: 16px;
-      color: var(--accent);
+      font-size: 17px;
+      color: #007aff;
+      margin-bottom: 6px;
     }
 
     .buttons {
       display: flex;
-      justify-content: space-between;
-      margin-top: 20px;
       gap: 10px;
+      margin-top: 18px;
     }
 
     button {
       flex: 1;
       padding: 14px;
+      border-radius: 14px;
       font-size: 16px;
-      border-radius: 12px;
       border: none;
-      color: white;
       cursor: pointer;
+      color: white;
     }
 
     .win-btn { background: #34c759; }
     .loss-btn { background: #ff3b30; }
     .undo-btn { background: #ff9500; }
-    .theme-btn { background: #007aff; }
 
     .bubble-container {
       display: flex;
       flex-wrap: wrap;
-      gap: 6px;
+      gap: 5px;
       justify-content: center;
       margin-top: 20px;
     }
@@ -148,62 +112,84 @@
 
     .quote-box {
       font-size: 13px;
+      color: #666;
       text-align: center;
       margin-top: 12px;
       font-style: italic;
-      opacity: 0.8;
+    }
+
+    .toggle-btn {
+      margin-top: 16px;
+      font-size: 15px;
+      background: #007aff;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 12px;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
   <div class="app-container">
-    <div class="input-section">
-      <div class="input-row">
-        <div class="input-group">
-          <label>IB</label>
-          <input type="number" id="ib" placeholder="Initial Balance" />
-        </div>
-        <div class="input-group">
-          <label>CB</label>
-          <input type="number" id="cb" placeholder="Current Balance" />
-        </div>
+
+    <!-- Zoom Lock Toggle -->
+    <button class="toggle-btn" id="lockZoomBtn" onclick="toggleZoomLock()">🔒 Zoom Lock</button>
+
+    <!-- Inputs -->
+    <div class="input-section" style="margin-top: 20px;">
+      <div class="input-group">
+        <label>IB</label>
+        <input type="number" id="ib" placeholder="Initial Balance">
       </div>
-      <div class="input-row">
-        <div class="input-group">
-          <label>TAD</label>
-          <input type="number" id="tad" placeholder="Total DD" />
-        </div>
-        <div class="input-group">
-          <label>Risk %</label>
-          <input type="number" id="riskPercent" placeholder="10" value="10" />
-        </div>
+      <div class="input-group">
+        <label>CB</label>
+        <input type="number" id="cb" placeholder="Current Balance">
+      </div>
+      <div class="input-group">
+        <label>TAD</label>
+        <input type="number" id="tad" placeholder="Total DD">
+      </div>
+      <div class="input-group">
+        <label>Risk %</label>
+        <input type="number" id="riskPercent" placeholder="10" value="10">
       </div>
     </div>
 
+    <!-- Summary -->
     <div class="summary">
       <div class="risk" id="riskBox">Current Risk: $0.00</div>
       <div>DD: <span id="ddBox">$0.00</span> | DD Left: <span id="ddLeftBox">$0.00</span></div>
     </div>
 
+    <!-- Controls -->
     <div class="buttons">
       <button class="win-btn" onclick="logTrade(true)">Win</button>
       <button class="loss-btn" onclick="logTrade(false)">Loss</button>
       <button class="undo-btn" onclick="undoLastTrade()">Undo</button>
     </div>
 
-    <div class="buttons" style="margin-top: 10px;">
-      <button class="theme-btn" onclick="toggleTheme()">🌓</button>
-    </div>
-
+    <!-- Metrics -->
     <div class="summary" id="streakBox">Streak: 0</div>
     <div class="summary" id="winRateBox">Win Rate: 0%</div>
-
     <div class="bubble-container" id="bubbleContainer"></div>
     <div class="quote-box" id="quoteBox"></div>
   </div>
 
+  <!-- Service Worker -->
   <script>
-    let tradeHistory = [], pnl = 0, winStreak = 0, lossStreak = 0;
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(reg => console.log("Service Worker registered"))
+        .catch(err => console.error("Service Worker registration failed:", err));
+    }
+  </script>
+
+  <!-- App Script -->
+  <script>
+    let pnl = 0;
+    let tradeHistory = JSON.parse(localStorage.getItem("tradeHistory")) || [];
+    let winStreak = 0, lossStreak = 0;
 
     const quotes = [
       "Focus on process, not outcome.",
@@ -211,10 +197,9 @@
       "Probabilities, not predictions.",
       "A trade is a sample, not a signal.",
       "Discipline > Emotion.",
-      "You're trading a distribution, not a single bet.",
-      "Let the edge play out.",
-      "Manage risk, not outcomes.",
-      "Protect your capital before chasing gains."
+      "Accept randomness. Master reaction.",
+      "Your edge lies in execution.",
+      "Stick to your risk, not your hopes."
     ];
 
     function updateRisk() {
@@ -230,6 +215,11 @@
       document.getElementById("riskBox").textContent = `Current Risk: $${risk.toFixed(2)}`;
       document.getElementById("ddBox").textContent = `$${dd.toFixed(2)}`;
       document.getElementById("ddLeftBox").textContent = `$${ddLeft.toFixed(2)}`;
+
+      localStorage.setItem("ib", ib);
+      localStorage.setItem("cb", cb);
+      localStorage.setItem("tad", tad);
+      localStorage.setItem("riskPercent", percent);
     }
 
     function logTrade(win) {
@@ -240,7 +230,7 @@
       updateStreak(win);
       updateWinRate();
       showQuote();
-      saveTrades();
+      localStorage.setItem("tradeHistory", JSON.stringify(tradeHistory));
     }
 
     function undoLastTrade() {
@@ -252,8 +242,8 @@
       lossStreak = 0;
       updateStreakDisplay();
       updateWinRate();
-      showQuote();
-      saveTrades();
+      document.getElementById("quoteBox").textContent = "";
+      localStorage.setItem("tradeHistory", JSON.stringify(tradeHistory));
     }
 
     function updateBubbles(win) {
@@ -285,63 +275,55 @@
       document.getElementById("quoteBox").textContent = `"${quote}"`;
     }
 
-    function saveTrades() {
-      localStorage.setItem("tradeHistory", JSON.stringify(tradeHistory));
-    }
-
-    function restoreTrades() {
-      const data = JSON.parse(localStorage.getItem("tradeHistory"));
-      if (data) {
-        tradeHistory = data;
-        pnl = 0;
-        document.getElementById("bubbleContainer").innerHTML = '';
-        tradeHistory.forEach(t => {
-          pnl += t.r;
-          updateBubbles(t.win);
-        });
-        updateWinRate();
-        updateStreakDisplay();
-      }
-    }
-
-    function restoreInputs() {
-      const fields = ["ib", "cb", "tad", "riskPercent"];
-      fields.forEach(id => {
-        const val = localStorage.getItem(id);
-        if (val !== null) document.getElementById(id).value = val;
-      });
+    function loadInputs() {
+      document.getElementById("ib").value = localStorage.getItem("ib") || "";
+      document.getElementById("cb").value = localStorage.getItem("cb") || "";
+      document.getElementById("tad").value = localStorage.getItem("tad") || "";
+      document.getElementById("riskPercent").value = localStorage.getItem("riskPercent") || "10";
       updateRisk();
     }
 
-    ["ib", "cb", "tad", "riskPercent"].forEach(id => {
-      const el = document.getElementById(id);
-      el.addEventListener("input", () => {
-        localStorage.setItem(id, el.value);
-        updateRisk();
+    function restoreBubbles() {
+      document.getElementById("bubbleContainer").innerHTML = "";
+      pnl = 0;
+      tradeHistory.forEach((t) => {
+        pnl += t.r;
+        updateBubbles(t.win);
       });
-    });
-
-    function toggleTheme() {
-      document.body.classList.toggle("dark");
-      localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark" : "light");
+      updateStreakDisplay();
+      updateWinRate();
     }
 
-    function restoreTheme() {
-      const t = localStorage.getItem("theme");
-      if (t === "dark") document.body.classList.add("dark");
+    // Zoom toggle logic
+    let zoomLocked = localStorage.getItem("zoomLocked") !== "false";
+    function toggleZoomLock() {
+      zoomLocked = !zoomLocked;
+      localStorage.setItem("zoomLocked", zoomLocked);
+      applyZoomLock();
     }
 
-    restoreTheme();
-    restoreInputs();
-    restoreTrades();
-    updateRisk();
-
-    // Register service worker
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js')
-        .then(reg => console.log("Service Worker registered"))
-        .catch(err => console.error("Service Worker registration failed:", err));
+    function applyZoomLock() {
+      const meta = document.getElementById("viewportMeta");
+      if (zoomLocked) {
+        meta.setAttribute("content", "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no");
+        document.getElementById("lockZoomBtn").textContent = "🔒 Zoom Locked";
+      } else {
+        meta.setAttribute("content", "width=device-width, initial-scale=1.0, maximum-scale=5.0");
+        document.getElementById("lockZoomBtn").textContent = "🔓 Zoom Unlocked";
+      }
     }
+
+    // INIT
+    window.onload = function () {
+      loadInputs();
+      restoreBubbles();
+      applyZoomLock();
+    }
+
+    // Event listeners
+    ["ib", "cb", "tad", "riskPercent"].forEach(id =>
+      document.getElementById(id).addEventListener("input", updateRisk)
+    );
   </script>
 </body>
 </html>
