@@ -3,219 +3,213 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PRO GAMBLER</title>
+  <title>ENIGMA Tool</title>
   <style>
     body {
       font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
       background: #121212;
       color: white;
-      text-align: center;
-      padding: 20px;
+      transition: background 0.3s, color 0.3s;
+    }
+    .light {
+      background: #f4f4f4;
+      color: black;
     }
     .container {
-      max-width: 400px;
+      max-width: 420px;
       margin: auto;
-      padding: 20px;
-      background: #1e1e1e;
-      border-radius: 12px;
     }
     .row {
       display: flex;
       justify-content: space-between;
-      align-items: center;
       margin: 8px 0;
     }
-    label {
+    .row input {
       flex: 1;
-      text-align: left;
-    }
-    input {
-      flex: 1;
-      padding: 5px;
-      border-radius: 6px;
-      border: none;
-      text-align: center;
-    }
-    .cb-control {
-      display: flex;
-      gap: 5px;
-      align-items: center;
-    }
-    .cb-control input {
-      width: 80px;
+      margin-left: 5px;
     }
     button {
-      padding: 5px 10px;
+      margin: 3px;
+      padding: 8px 14px;
       border: none;
-      border-radius: 6px;
+      border-radius: 8px;
       cursor: pointer;
-      background: #444;
-      color: white;
+      transition: 0.3s;
     }
     button:hover {
-      background: #666;
+      opacity: 0.85;
     }
-    .event-dropdown {
-      margin: 15px 0;
+    .win { background: #4caf50; color: white; }
+    .loss { background: #f44336; color: white; }
+    .undo { background: #555; color: white; }
+    .mode-toggle {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      cursor: pointer;
+      font-size: 22px;
     }
     select {
-      padding: 5px;
+      width: 100%;
+      padding: 8px;
       border-radius: 6px;
+      border: none;
+      margin-top: 5px;
     }
-    .bubbles {
-      margin-top: 10px;
-      max-height: 120px;
-      overflow-y: auto;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-    .bubble {
-      padding: 6px 10px;
-      border-radius: 15px;
-      font-size: 12px;
-      white-space: nowrap;
-    }
-    .bubble.win { background: #007bff; } /* blue */
-    .bubble.loss { background: gray; }   /* gray */
-    .quote-box {
-      margin-top: 15px;
+    .quote {
+      margin: 10px 0;
       font-style: italic;
       color: #ccc;
-    }
-    .switch {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin: 10px 0;
-      justify-content: center;
     }
   </style>
 </head>
 <body>
+  <div class="mode-toggle" id="modeToggle">🌙</div>
   <div class="container">
-    <h2>PRO GAMBLER</h2>
-    
     <div class="row">
-      <label>IB:</label>
-      <input type="number" id="ib" value="25000">
+      <label>Initial Balance:</label>
+      <input type="number" id="initialBalance" value="1000">
     </div>
     <div class="row">
-      <label>TDD:</label>
-      <input type="number" id="tdd" value="2500">
+      <label>Current Balance:</label>
+      <input type="number" id="currentBalance" value="1000">
+      <button onclick="adjustBalance(true)">+</button>
+      <button onclick="adjustBalance(false)">-</button>
+      <input type="number" id="adjustAmount" value="0" style="width:70px">
     </div>
-
-    <div class="row cb-control">
-      <input type="number" id="cbInput" value="24600">
-      <button onclick="adjustCB(-100)">-</button>
-      <button onclick="adjustCB(100)">+</button>
-      <span>CB: <span id="cbDisplay">24600</span></span>
-    </div>
-
     <div class="row">
-      <label>RISK %:</label>
-      <input type="number" id="risk" value="10">
+      <label>Total DD %:</label>
+      <input type="number" id="totalDD" value="10">
     </div>
-
-    <div class="switch">
-      <label for="riskMode">TOTAL DD</label>
-      <input type="checkbox" id="riskMode">
-      <label for="riskMode">IB%</label>
-    </div>
-
     <div class="row">
-      <label>NEXT RISK:</label>
-      <span id="nextRisk">0</span>
+      <label>Fixed Risk %:</label>
+      <input type="number" id="fixedRisk" value="1">
     </div>
-
-    <div class="event-dropdown">
-      <label>EVENTS:</label>
-      <select id="eventSelect" onchange="addEvent()">
-        <option value="">-- Select --</option>
-        <option value="win">WIN</option>
-        <option value="loss">LOSS</option>
-        <option value="undo">UNDO</option>
+    <div class="row">
+      <label>Risk Mode:</label>
+      <select id="riskMode" onchange="updateDisplay()">
+        <option value="dd">Total DD Mode</option>
+        <option value="fixed">Fixed Risk Mode</option>
       </select>
     </div>
-    <div class="bubbles" id="bubbles"></div>
 
-    <div class="quote-box" id="quoteBox">Stay disciplined, trust probabilities.</div>
+    <div class="row">
+      <strong>Winrate:</strong> <span id="winrate">0%</span>
+    </div>
+    <div class="row">
+      <strong>Next Risk:</strong> <span id="nextRisk">0</span>
+    </div>
+
+    <div class="row" style="justify-content:center;">
+      <button class="win" onclick="recordResult(true)">Win</button>
+      <button class="loss" onclick="recordResult(false)">Lose</button>
+      <button class="undo" onclick="undo()">Undo</button>
+    </div>
+
+    <select id="eventsDropdown">
+      <option disabled selected>Events</option>
+    </select>
+
+    <div class="quote" id="quoteBox"></div>
   </div>
 
   <script>
-    let ib = document.getElementById('ib');
-    let tdd = document.getElementById('tdd');
-    let cbInput = document.getElementById('cbInput');
-    let cbDisplay = document.getElementById('cbDisplay');
-    let riskInput = document.getElementById('risk');
-    let nextRisk = document.getElementById('nextRisk');
-    let riskMode = document.getElementById('riskMode');
-    let bubbles = document.getElementById('bubbles');
-    let events = [];
-
+    let wins = 0, losses = 0;
+    let history = [];
     const quotes = [
-      "Stay disciplined, trust probabilities.",
-      "Losses are part of the game.",
-      "Think in R, not in money.",
-      "Protect your capital first."
+      "Losses are tuition you pay to the market.",
+      "Focus on process, not outcome.",
+      "Risk is the cost of opportunity.",
+      "Every trade is just one of many.",
+      "Probabilities matter more than certainty.",
+      "Small losses protect you from big ones.",
+      "Consistency beats intensity.",
+      "Detach from results, trust your edge."
     ];
 
-    function updateRisk() {
-      let IB = parseFloat(ib.value);
-      let TDD = parseFloat(tdd.value);
-      let CB = parseFloat(cbInput.value);
-      let riskPercent = parseFloat(riskInput.value) / 100;
+    function adjustBalance(add) {
+      let amt = parseFloat(document.getElementById("adjustAmount").value) || 0;
+      let cb = parseFloat(document.getElementById("currentBalance").value);
+      document.getElementById("currentBalance").value = add ? cb + amt : cb - amt;
+      updateDisplay();
+    }
 
-      let riskAmount = 0;
-      if (riskMode.checked && CB > IB) {
-        // Fixed risk from IB when above IB
-        riskAmount = IB * riskPercent;
+    function recordResult(isWin) {
+      let cb = parseFloat(document.getElementById("currentBalance").value);
+      let risk = parseFloat(document.getElementById("nextRisk").innerText);
+
+      if (isWin) {
+        cb += risk;
+        wins++;
+        addEvent("Win +" + risk.toFixed(2));
       } else {
-        // Risk as % of remaining DD
-        let remainingDD = (IB - CB) > TDD ? 0 : (TDD - (IB - CB));
-        riskAmount = remainingDD * riskPercent;
+        cb -= risk;
+        losses++;
+        addEvent("Loss -" + risk.toFixed(2));
+        showQuote();
       }
 
-      nextRisk.textContent = riskAmount.toFixed(2);
-      cbDisplay.textContent = CB;
+      document.getElementById("currentBalance").value = cb;
+      history.push({win:isWin, amount:risk});
+      updateDisplay();
     }
 
-    function adjustCB(amount) {
-      cbInput.value = parseFloat(cbInput.value) + amount;
-      updateRisk();
+    function undo() {
+      if (history.length === 0) return;
+      let last = history.pop();
+      let cb = parseFloat(document.getElementById("currentBalance").value);
+
+      if (last.win) { cb -= last.amount; wins--; }
+      else { cb += last.amount; losses--; }
+
+      document.getElementById("currentBalance").value = cb;
+      updateDisplay();
     }
 
-    cbInput.addEventListener("input", updateRisk);
-    ib.addEventListener("input", updateRisk);
-    tdd.addEventListener("input", updateRisk);
-    riskInput.addEventListener("input", updateRisk);
-    riskMode.addEventListener("change", updateRisk);
+    function addEvent(text) {
+      let dropdown = document.getElementById("eventsDropdown");
+      let option = document.createElement("option");
+      option.text = text;
+      dropdown.add(option);
+    }
 
-    function addEvent() {
-      let val = document.getElementById("eventSelect").value;
-      if (!val) return;
+    function showQuote() {
+      document.getElementById("quoteBox").innerText =
+        quotes[Math.floor(Math.random() * quotes.length)];
+    }
 
-      if (val === "undo" && events.length > 0) {
-        events.pop();
-        bubbles.removeChild(bubbles.lastChild);
+    function updateDisplay() {
+      let cb = parseFloat(document.getElementById("currentBalance").value);
+      let ib = parseFloat(document.getElementById("initialBalance").value);
+      let dd = parseFloat(document.getElementById("totalDD").value) / 100;
+      let fr = parseFloat(document.getElementById("fixedRisk").value) / 100;
+      let mode = document.getElementById("riskMode").value;
+
+      let risk = 0;
+      if (mode === "dd") {
+        let maxLoss = ib * dd;
+        let usedLoss = ib - cb;
+        let remLoss = Math.max(maxLoss - usedLoss, 0);
+        risk = remLoss * 0.1; // 10% of remaining DD
       } else {
-        let bubble = document.createElement("div");
-        bubble.className = "bubble " + val;
-        bubble.textContent = val.toUpperCase();
-        bubbles.appendChild(bubble);
-        events.push(val);
+        risk = cb * fr;
       }
 
-      document.getElementById("eventSelect").value = "";
-      updateQuote();
+      document.getElementById("nextRisk").innerText = risk.toFixed(2);
+      let total = wins + losses;
+      document.getElementById("winrate").innerText = total ? ((wins/total)*100).toFixed(1) + "%" : "0%";
     }
 
-    function updateQuote() {
-      let q = quotes[Math.floor(Math.random() * quotes.length)];
-      document.getElementById("quoteBox").textContent = q;
-    }
+    // Light/Dark Mode
+    document.getElementById("modeToggle").addEventListener("click", () => {
+      document.body.classList.toggle("light");
+      document.getElementById("modeToggle").innerText =
+        document.body.classList.contains("light") ? "☀️" : "🌙";
+    });
 
-    updateRisk();
+    updateDisplay();
   </script>
 </body>
 </html>
