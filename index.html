@@ -1,266 +1,347 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>PRO GAMBLER</title>
   <style>
+    :root {
+      --bg: #121212;
+      --card: #1e1e1e;
+      --ink: #f3f3f3;
+      --muted: #bdbdbd;
+      --accent: #4fa3ff;
+      --good: #2ecc71;
+      --bad: #e74c3c;
+      --chip: #2a2a2a;
+      --border: #2b2b2b;
+    }
+    * { box-sizing: border-box; }
     body {
-      font-family: Arial, sans-serif;
-      background-color: #121212;
-      color: #fff;
-      text-align: center;
       margin: 0;
-      padding: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      display: flex;
+      justify-content: center;
     }
-    .container {
-      width: 95%;
-      max-width: 500px;
-      margin: 20px auto;
-      background: #1e1e1e;
-      border-radius: 12px;
-      padding: 15px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+    .wrap {
+      width: 100%;
+      max-width: 430px;
+      padding: 16px 14px 28px;
     }
-    h1 {
-      font-size: 20px;
-      margin-bottom: 15px;
-      letter-spacing: 1px;
+    .title {
+      text-align: center;
+      font-weight: 700;
+      letter-spacing: .6px;
+      margin: 6px 0 12px;
+      color: var(--ink);
+      opacity: .9;
     }
+
+    /* Grid of 4 equal cells */
     .grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 8px;
-      margin-bottom: 12px;
     }
-    .box {
-      background: #2a2a2a;
+    .cell {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
       padding: 8px;
-      border-radius: 8px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      font-size: 12px;
     }
-    .box input {
+    .label {
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: .5px;
+      text-align: center;
+      margin-bottom: 4px;
+    }
+    .num {
       width: 100%;
       text-align: center;
-      margin-top: 4px;
-      padding: 4px;
-      border: none;
-      border-radius: 4px;
-    }
-    .cb-control {
-      display: flex;
-      gap: 4px;
-      margin-top: 4px;
-    }
-    .cb-control input {
-      width: 50px;
-      text-align: center;
-      padding: 4px;
-    }
-    .cb-control button {
-      background: #444;
-      border: none;
-      color: white;
-      padding: 4px 8px;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    .cb-control button:hover {
-      background: #666;
-    }
-    .row {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin: 10px 0;
-    }
-    button {
-      background: #3a3a3a;
-      border: none;
-      color: white;
-      padding: 6px 12px;
-      border-radius: 6px;
-      cursor: pointer;
+      padding: 8px 6px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--chip);
+      color: var(--ink);
       font-size: 14px;
     }
-    button:hover {
-      background: #555;
+
+    /* CB controls inside its cell */
+    .cb-stack {
+      display: grid;
+      grid-template-rows: auto auto;
+      gap: 6px;
+    }
+    .cb-adjust {
+      display: grid;
+      grid-template-columns: 28px 1fr 28px;
+      gap: 6px;
+      align-items: center;
+    }
+    .btn-mini {
+      border: 1px solid var(--border);
+      background: var(--chip);
+      color: var(--ink);
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 16px;
+      padding: 2px 0;
+      cursor: pointer;
+    }
+    .adj {
+      text-align: center;
+      padding: 6px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--chip);
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    /* Risk mode switch & dynamic input area */
+    .mode {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin: 10px 0 6px;
+      font-size: 12px;
+      color: var(--muted);
     }
     .switch {
       position: relative;
-      display: inline-block;
-      width: 50px;
-      height: 24px;
+      width: 54px; height: 28px;
     }
     .switch input { display: none; }
     .slider {
-      position: absolute;
+      position: absolute; inset: 0;
+      background: #555;
+      border-radius: 999px;
       cursor: pointer;
-      top: 0; left: 0;
-      right: 0; bottom: 0;
-      background-color: #888;
-      border-radius: 24px;
-      transition: .4s;
+      transition: .25s ease;
     }
     .slider:before {
-      position: absolute;
       content: "";
-      height: 18px; width: 18px;
-      left: 3px; bottom: 3px;
-      background-color: white;
-      border-radius: 50%;
-      transition: .4s;
+      position: absolute;
+      width: 22px; height: 22px;
+      left: 3px; top: 3px;
+      background: #fff; border-radius: 50%;
+      transition: .25s ease;
     }
-    input:checked + .slider {
-      background-color: #4caf50;
+    .switch input:checked + .slider {
+      background: var(--accent);
     }
-    input:checked + .slider:before {
+    .switch input:checked + .slider:before {
       transform: translateX(26px);
     }
-    .dropdown {
+
+    .risk-inline {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin: 6px 0 4px;
+    }
+    .chip {
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 10px;
+      border-radius: 12px;
+      text-align: center;
+      font-size: 14px;
+    }
+    .chip strong { color: var(--accent); }
+
+    /* Action row */
+    .row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
       margin-top: 10px;
     }
-    .dropdown-content {
-      display: none;
-      max-height: 120px;
-      overflow-y: auto;
-      background: #2a2a2a;
-      border-radius: 8px;
-      padding: 6px;
-      margin-top: 4px;
+    .btn {
+      padding: 12px 10px;
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-weight: 700;
+      cursor: pointer;
+      transition: .15s ease;
     }
-    .bubble {
-      background: #444;
-      padding: 6px 10px;
+    .btn:active { transform: translateY(1px); }
+    .win  { background: var(--good); }
+    .loss { background: var(--bad); }
+    .undo { background: #6b7280; }
+
+    /* Events dropdown (dots) */
+    details {
+      margin-top: 12px;
+      background: var(--card);
+      border: 1px solid var(--border);
       border-radius: 12px;
-      margin: 4px;
-      font-size: 12px;
-      text-align: left;
-    }
-    .quote-box {
-      margin-top: 15px;
-      font-style: italic;
-      font-size: 13px;
-      background: #2a2a2a;
       padding: 8px;
-      border-radius: 8px;
+    }
+    summary {
+      list-style: none;
+      cursor: pointer;
+      user-select: none;
+      text-align: center;
+      font-weight: 700;
+      color: var(--ink);
+    }
+    summary::-webkit-details-marker { display: none; }
+
+    .dots {
+      margin-top: 10px;
+      max-height: 140px;
+      overflow-y: auto;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 4px;
+      justify-content: flex-start;
+    }
+    .dot {
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      flex: 0 0 12px;
+    }
+    .dot.win  { background: var(--good); }
+    .dot.loss { background: var(--bad); }
+
+    .quote {
+      margin-top: 10px;
+      font-size: 13px;
+      color: var(--muted);
+      text-align: center;
+      font-style: italic;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>PRO GAMBLER</h1>
+  <div class="wrap">
+    <div class="title">PRO GAMBLER</div>
+
+    <!-- Top grid: IB / CB(+/-) / TDD / RISK -->
     <div class="grid">
-      <div class="box">
-        IB
-        <input type="number" id="ib" value="1000">
+      <div class="cell">
+        <div class="label">IB</div>
+        <input class="num" type="number" id="ib" inputmode="decimal" value="1000" />
       </div>
-      <div class="box">
-        CB
-        <div class="cb-control">
-          <button onclick="adjustCB(-getCBInput())">-</button>
-          <input type="number" id="cbInput" value="1000">
-          <button onclick="adjustCB(getCBInput())">+</button>
+
+      <div class="cell">
+        <div class="label">CB</div>
+        <div class="cb-stack">
+          <input class="num" type="number" id="cb" inputmode="decimal" value="1000" />
+          <div class="cb-adjust">
+            <button class="btn-mini" id="cbMinus">−</button>
+            <input class="adj" type="number" id="cbDelta" inputmode="decimal" placeholder="Δ" />
+            <button class="btn-mini" id="cbPlus">+</button>
+          </div>
         </div>
       </div>
-      <div class="box">
-        TDD
-        <input type="number" id="tdd" value="500">
+
+      <div class="cell">
+        <div class="label">TDD</div>
+        <input class="num" type="number" id="tdd" inputmode="decimal" value="500" />
       </div>
-      <div class="box">
-        RISK
-        <input type="number" id="risk" value="1">
+
+      <div class="cell" id="riskCell">
+        <div class="label">RISK</div>
+        <!-- This input morphs (label/placeholder) depending on mode -->
+        <input class="num" type="number" id="riskInput" inputmode="decimal" value="50" placeholder="$ (fixed)" />
       </div>
     </div>
 
-    <div class="row">
-      <button onclick="addEvent('WIN')">WIN</button>
-      <button onclick="addEvent('LOSS')">LOSS</button>
-      <button onclick="undo()">UNDO</button>
-    </div>
-
-    <div>
-      <label style="font-size:12px;">FIXED</label>
+    <!-- Mode switch -->
+    <div class="mode">
+      FIXED
       <label class="switch">
-        <input type="checkbox" id="riskMode">
+        <input type="checkbox" id="modeSwitch" />
         <span class="slider"></span>
       </label>
-      <label style="font-size:12px;">TOTAL DD</label>
+      TDD
     </div>
 
-    <div id="nextRiskBox" style="margin-top:12px; font-size:14px;"></div>
-
-    <div class="dropdown">
-      <button onclick="toggleDropdown()">EVENTS</button>
-      <div class="dropdown-content" id="events"></div>
+    <!-- Next risk & DD info -->
+    <div class="risk-inline">
+      <div class="chip" id="nextRiskChip">NEXT RISK: <strong>$0.00</strong></div>
+      <div class="chip" id="ddInfo">DD: $0.00 • LEFT: $0.00</div>
     </div>
 
-    <div class="quote-box" id="quoteBox">Stay disciplined. Trust probabilities.</div>
+    <!-- Actions -->
+    <div class="row">
+      <button class="btn win"  id="btnWin">WIN</button>
+      <button class="btn loss" id="btnLoss">LOSS</button>
+      <button class="btn undo" id="btnUndo">UNDO</button>
+    </div>
+
+    <!-- Events (dots) -->
+    <details>
+      <summary>EVENTS</summary>
+      <div class="dots" id="dots"></div>
+    </details>
+
+    <!-- Quotes -->
+    <div class="quote" id="quoteBox">Focus on process, not outcome.</div>
   </div>
 
   <script>
-    let events = [];
-    const quotes = [
-      "Stay disciplined. Trust probabilities.",
-      "Losses are tuition fees for success.",
-      "Process > Outcome. Always.",
-      "Next trade is a new opportunity.",
-      "Protect your capital, respect your edge."
+    // --- Elements
+    const elIB   = document.getElementById('ib');
+    const elCB   = document.getElementById('cb');
+    const elTDD  = document.getElementById('tdd');
+    const elRisk = document.getElementById('riskInput');
+    const elMode = document.getElementById('modeSwitch');
+
+    const elNextRiskChip = document.getElementById('nextRiskChip');
+    const elDDInfo       = document.getElementById('ddInfo');
+
+    const elCbDelta   = document.getElementById('cbDelta');
+    const elCbMinus   = document.getElementById('cbMinus');
+    const elCbPlus    = document.getElementById('cbPlus');
+
+    const dots = document.getElementById('dots');
+    const quoteBox = document.getElementById('quoteBox');
+
+    // --- Storage state
+    let state = {
+      ib: 1000,
+      cb: 1000,
+      tdd: 500,
+      mode: 'fixed',        // 'fixed' | 'tdd'
+      riskFixed: 50,        // dollars
+      riskPct: 10,          // percent of DD Left (used in TDD mode)
+      events: []            // 'win' | 'loss'
+    };
+
+    const quotesWin = [
+      "Win with discipline, not ego.",
+      "Stack small edges consistently.",
+      "Good execution > lucky outcome."
+    ];
+    const quotesLoss = [
+      "Losses are tuition—protect capital.",
+      "Probabilities, not predictions.",
+      "Respect the stop, preserve the edge.",
+      "Process > Outcome. Reset and focus.",
     ];
 
-    function getCBInput() {
-      return Number(document.getElementById('cbInput').value);
+    // --- Helpers
+    const toNum = v => {
+      const n = parseFloat(v);
+      return Number.isFinite(n) ? n : 0;
+    };
+    const fmt = n => '$' + (toNum(n)).toFixed(2);
+
+    function save() {
+      localStorage.setItem('pg_state', JSON.stringify(state));
     }
-
-    function adjustCB(amount) {
-      let cb = getCBInput();
-      cb += amount;
-      document.getElementById('cbInput').value = cb;
-      updateRisk();
-    }
-
-    function updateRisk() {
-      let cb = getCBInput();
-      let ib = Number(document.getElementById("ib").value);
-      let tdd = Number(document.getElementById("tdd").value);
-      let risk = Number(document.getElementById("risk").value);
-      let riskMode = document.getElementById("riskMode").checked;
-
-      let nextRisk = riskMode ? (risk / 100) * tdd : (risk / 100) * cb;
-
-      document.getElementById("nextRiskBox").innerText = 
-        "NEXT RISK: " + nextRisk.toFixed(2);
-    }
-
-    function addEvent(type) {
-      events.push(type);
-      let bubble = document.createElement("div");
-      bubble.className = "bubble";
-      bubble.innerText = type;
-      document.getElementById("events").appendChild(bubble);
-
-      // Show motivational quote
-      document.getElementById("quoteBox").innerText =
-        quotes[Math.floor(Math.random() * quotes.length)];
-    }
-
-    function undo() {
-      if (events.length > 0) {
-        events.pop();
-        let container = document.getElementById("events");
-        container.removeChild(container.lastChild);
-      }
-    }
-
-    function toggleDropdown() {
-      let content = document.getElementById("events");
-      content.style.display = content.style.display === "block" ? "none" : "block";
-    }
-
-    updateRisk();
-  </script>
-</body>
-</html>
+    function load() {
+      const raw = localStorage.getItem('pg_state');
+      if (!raw) return;
+      try {
+        const s = JSON.parse(raw);
+        state =
