@@ -7,260 +7,209 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #111;
-      color: #eee;
-      margin: 0; padding: 20px;
+      margin: 0;
+      padding: 20px;
+      background: #121212;
+      color: white;
       transition: background 0.3s, color 0.3s;
     }
-    body.light {
-      background: #f7f7f7;
-      color: #222;
+    .light {
+      background: #f4f4f4;
+      color: black;
     }
     .container {
       max-width: 420px;
       margin: auto;
-      padding: 15px;
-      border-radius: 12px;
-      background: #1c1c1c;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
     }
-    body.light .container {
-      background: #fff;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-    h2 { text-align: center; margin-bottom: 15px; }
     .row {
       display: flex;
       justify-content: space-between;
-      align-items: center;
       margin: 8px 0;
     }
-    label { flex: 1; font-size: 14px; }
-    input {
+    .row input {
       flex: 1;
-      padding: 6px;
-      border: 1px solid #444;
-      border-radius: 6px;
-      text-align: center;
-      background: #222;
-      color: #fff;
-    }
-    body.light input {
-      background: #fafafa;
-      color: #111;
-      border: 1px solid #ccc;
+      margin-left: 5px;
     }
     button {
-      padding: 6px 10px;
-      margin: 0 2px;
+      margin: 3px;
+      padding: 8px 14px;
       border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    .win { background: #28a745; color: white; }
-    .loss { background: #dc3545; color: white; }
-    .undo { background: #6c757d; color: white; }
-    .small-btn { width: 32px; }
-    select, .dropdown {
-      padding: 6px;
-      border-radius: 6px;
-      background: #333;
-      color: #fff;
-      border: 1px solid #555;
-    }
-    body.light select, body.light .dropdown {
-      background: #f2f2f2;
-      color: #111;
-      border: 1px solid #ccc;
-    }
-    .dropdown-content {
-      display: none;
-      margin-top: 8px;
-      padding: 8px;
       border-radius: 8px;
-      background: #222;
-      max-height: 120px;
-      overflow-y: auto;
-    }
-    body.light .dropdown-content {
-      background: #f9f9f9;
-    }
-    .bubble {
-      display: inline-block;
-      margin: 4px;
-      padding: 4px 10px;
-      border-radius: 12px;
-      font-size: 13px;
-      color: #fff;
-    }
-    .bubble.win { background: #28a745; }
-    .bubble.loss { background: #dc3545; }
-    .toggle {
-      float: right;
-      margin-bottom: 10px;
       cursor: pointer;
-      font-size: 14px;
-      padding: 4px 8px;
-      border-radius: 6px;
-      background: #444;
-      color: #fff;
+      transition: 0.3s;
     }
-    body.light .toggle {
-      background: #ddd;
-      color: #000;
+    button:hover {
+      opacity: 0.85;
+    }
+    .win { background: #4caf50; color: white; }
+    .loss { background: #f44336; color: white; }
+    .undo { background: #555; color: white; }
+    .mode-toggle {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      cursor: pointer;
+      font-size: 22px;
+    }
+    select {
+      width: 100%;
+      padding: 8px;
+      border-radius: 6px;
+      border: none;
+      margin-top: 5px;
+    }
+    .quote {
+      margin: 10px 0;
+      font-style: italic;
+      color: #ccc;
     }
   </style>
 </head>
 <body>
-  <div class="toggle" onclick="toggleMode()">🌙 / ☀️</div>
+  <div class="mode-toggle" id="modeToggle">🌙</div>
   <div class="container">
-    <h2>ENIGMA Tool</h2>
-
     <div class="row">
       <label>Initial Balance:</label>
-      <input type="number" id="ib" value="10000">
+      <input type="number" id="initialBalance" value="1000">
     </div>
-
     <div class="row">
       <label>Current Balance:</label>
-      <input type="number" id="cb" value="10000">
-      <input type="number" id="adjustAmount" value="100" style="width:70px;">
-      <button class="small-btn" onclick="adjustCB('+')">+</button>
-      <button class="small-btn" onclick="adjustCB('-')">-</button>
+      <input type="number" id="currentBalance" value="1000">
+      <button onclick="adjustBalance(true)">+</button>
+      <button onclick="adjustBalance(false)">-</button>
+      <input type="number" id="adjustAmount" value="0" style="width:70px">
     </div>
-
     <div class="row">
-      <label>Total DD Allowed:</label>
-      <input type="number" id="tad" value="2000">
+      <label>Total DD %:</label>
+      <input type="number" id="totalDD" value="10">
     </div>
-
     <div class="row">
-      <label>Risk %:</label>
-      <input type="number" id="risk" value="2">
+      <label>Fixed Risk %:</label>
+      <input type="number" id="fixedRisk" value="1">
     </div>
-
     <div class="row">
       <label>Risk Mode:</label>
-      <select id="riskMode" onchange="updateRisk()">
+      <select id="riskMode" onchange="updateDisplay()">
         <option value="dd">Total DD Mode</option>
         <option value="fixed">Fixed Risk Mode</option>
       </select>
     </div>
 
     <div class="row">
-      <label>Next Risk:</label>
-      <span id="nextRisk">$0</span>
+      <strong>Winrate:</strong> <span id="winrate">0%</span>
+    </div>
+    <div class="row">
+      <strong>Next Risk:</strong> <span id="nextRisk">0</span>
     </div>
 
-    <div class="row">
-      <button class="win" onclick="recordResult('win')">Win</button>
-      <button class="loss" onclick="recordResult('loss')">Loss</button>
+    <div class="row" style="justify-content:center;">
+      <button class="win" onclick="recordResult(true)">Win</button>
+      <button class="loss" onclick="recordResult(false)">Lose</button>
       <button class="undo" onclick="undo()">Undo</button>
     </div>
 
-    <div class="row">
-      <label>Winrate:</label>
-      <span id="winrate">0%</span>
-    </div>
+    <select id="eventsDropdown">
+      <option disabled selected>Events</option>
+    </select>
 
-    <div class="row">
-      <label>Bubbles:</label>
-      <select class="dropdown" onchange="toggleBubbles(this)">
-        <option value="hide">Show/Hide</option>
-        <option value="show">Show</option>
-      </select>
-    </div>
-    <div id="bubbleContainer" class="dropdown-content"></div>
+    <div class="quote" id="quoteBox"></div>
   </div>
 
-<script>
-  let ib = document.getElementById('ib');
-  let cb = document.getElementById('cb');
-  let tad = document.getElementById('tad');
-  let risk = document.getElementById('risk');
-  let riskMode = document.getElementById('riskMode');
-  let nextRisk = document.getElementById('nextRisk');
-  let winrate = document.getElementById('winrate');
-  let bubbleContainer = document.getElementById('bubbleContainer');
-  let adjustAmount = document.getElementById('adjustAmount');
+  <script>
+    let wins = 0, losses = 0;
+    let history = [];
+    const quotes = [
+      "Losses are tuition you pay to the market.",
+      "Focus on process, not outcome.",
+      "Risk is the cost of opportunity.",
+      "Every trade is just one of many.",
+      "Probabilities matter more than certainty.",
+      "Small losses protect you from big ones.",
+      "Consistency beats intensity.",
+      "Detach from results, trust your edge."
+    ];
 
-  let wins = 0, losses = 0, history = [];
-
-  function toggleMode() {
-    document.body.classList.toggle('light');
-  }
-
-  function adjustCB(type) {
-    let amt = parseFloat(adjustAmount.value) || 0;
-    let current = parseFloat(cb.value) || 0;
-    if (type === '+') cb.value = current + amt;
-    else cb.value = current - amt;
-    updateRisk();
-  }
-
-  function updateRisk() {
-    let currentBalance = parseFloat(cb.value);
-    let initialBalance = parseFloat(ib.value);
-    let totalDD = parseFloat(tad.value);
-    let riskPercent = parseFloat(risk.value);
-
-    if (riskMode.value === "dd") {
-      let ddLeft = initialBalance - (initialBalance - totalDD - (initialBalance - currentBalance));
-      let nextRiskValue = (ddLeft * (riskPercent / 100));
-      nextRisk.textContent = "$" + nextRiskValue.toFixed(2);
-    } else {
-      let nextRiskValue = (currentBalance * (riskPercent / 100));
-      nextRisk.textContent = "$" + nextRiskValue.toFixed(2);
+    function adjustBalance(add) {
+      let amt = parseFloat(document.getElementById("adjustAmount").value) || 0;
+      let cb = parseFloat(document.getElementById("currentBalance").value);
+      document.getElementById("currentBalance").value = add ? cb + amt : cb - amt;
+      updateDisplay();
     }
-  }
 
-  function recordResult(result) {
-    if (result === "win") {
-      wins++;
-      addBubble("W", "win");
-    } else {
-      losses++;
-      addBubble("L", "loss");
+    function recordResult(isWin) {
+      let cb = parseFloat(document.getElementById("currentBalance").value);
+      let risk = parseFloat(document.getElementById("nextRisk").innerText);
+
+      if (isWin) {
+        cb += risk;
+        wins++;
+        addEvent("Win +" + risk.toFixed(2));
+      } else {
+        cb -= risk;
+        losses++;
+        addEvent("Loss -" + risk.toFixed(2));
+        showQuote();
+      }
+
+      document.getElementById("currentBalance").value = cb;
+      history.push({win:isWin, amount:risk});
+      updateDisplay();
     }
-    history.push(result);
-    updateWinrate();
-    updateRisk();
-  }
 
-  function undo() {
-    if (history.length === 0) return;
-    let last = history.pop();
-    if (last === "win") wins--;
-    else losses--;
-    bubbleContainer.removeChild(bubbleContainer.lastChild);
-    updateWinrate();
-    updateRisk();
-  }
+    function undo() {
+      if (history.length === 0) return;
+      let last = history.pop();
+      let cb = parseFloat(document.getElementById("currentBalance").value);
 
-  function updateWinrate() {
-    let total = wins + losses;
-    let rate = total > 0 ? (wins / total) * 100 : 0;
-    winrate.textContent = rate.toFixed(1) + "%";
-  }
+      if (last.win) { cb -= last.amount; wins--; }
+      else { cb += last.amount; losses--; }
 
-  function addBubble(text, type) {
-    let div = document.createElement("div");
-    div.className = "bubble " + type;
-    div.textContent = text;
-    bubbleContainer.appendChild(div);
-  }
+      document.getElementById("currentBalance").value = cb;
+      updateDisplay();
+    }
 
-  function toggleBubbles(dropdown) {
-    bubbleContainer.style.display = dropdown.value === "show" ? "block" : "none";
-  }
+    function addEvent(text) {
+      let dropdown = document.getElementById("eventsDropdown");
+      let option = document.createElement("option");
+      option.text = text;
+      dropdown.add(option);
+    }
 
-  ib.addEventListener("input", updateRisk);
-  cb.addEventListener("input", updateRisk);
-  tad.addEventListener("input", updateRisk);
-  risk.addEventListener("input", updateRisk);
+    function showQuote() {
+      document.getElementById("quoteBox").innerText =
+        quotes[Math.floor(Math.random() * quotes.length)];
+    }
 
-  updateRisk();
-</script>
+    function updateDisplay() {
+      let cb = parseFloat(document.getElementById("currentBalance").value);
+      let ib = parseFloat(document.getElementById("initialBalance").value);
+      let dd = parseFloat(document.getElementById("totalDD").value) / 100;
+      let fr = parseFloat(document.getElementById("fixedRisk").value) / 100;
+      let mode = document.getElementById("riskMode").value;
+
+      let risk = 0;
+      if (mode === "dd") {
+        let maxLoss = ib * dd;
+        let usedLoss = ib - cb;
+        let remLoss = Math.max(maxLoss - usedLoss, 0);
+        risk = remLoss * 0.1; // 10% of remaining DD
+      } else {
+        risk = cb * fr;
+      }
+
+      document.getElementById("nextRisk").innerText = risk.toFixed(2);
+      let total = wins + losses;
+      document.getElementById("winrate").innerText = total ? ((wins/total)*100).toFixed(1) + "%" : "0%";
+    }
+
+    // Light/Dark Mode
+    document.getElementById("modeToggle").addEventListener("click", () => {
+      document.body.classList.toggle("light");
+      document.getElementById("modeToggle").innerText =
+        document.body.classList.contains("light") ? "☀️" : "🌙";
+    });
+
+    updateDisplay();
+  </script>
 </body>
 </html>
