@@ -6,216 +6,185 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #121212;
+      margin: 20px;
+      background: #121212;
       color: white;
-      margin: 0;
-      padding: 20px;
       transition: background 0.3s, color 0.3s;
     }
-    .light-mode {
-      background-color: #f4f4f4;
+    body.light {
+      background: #f5f5f5;
       color: black;
     }
     .container {
-      max-width: 400px;
+      max-width: 800px;
       margin: auto;
     }
     .row {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      margin: 8px 0;
+      margin-bottom: 12px;
     }
-    label {
+    .row label {
       flex: 1;
-      font-size: 14px;
       font-weight: bold;
     }
-    input {
-      flex: 1;
-      padding: 4px;
-      margin-left: 6px;
-      font-size: 14px;
-      text-align: right;
+    .row input, .row select {
+      flex: 2;
+      padding: 6px;
+      margin: 0 4px;
     }
-    .small-input {
-      width: 60px;
-      text-align: center;
-    }
-    button {
-      padding: 6px 12px;
-      margin: 2px;
-      border: none;
-      border-radius: 6px;
+    .row button {
+      padding: 6px 10px;
+      margin: 0 2px;
       cursor: pointer;
+    }
+    .cb-display {
+      flex: 2;
       font-weight: bold;
     }
     .toggle {
-      position: absolute;
-      right: 20px;
-      top: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .events-dropdown {
+      position: relative;
+    }
+    .events-dropdown button {
+      padding: 6px 10px;
       cursor: pointer;
     }
-    .dropdown {
-      position: relative;
-      display: inline-block;
-    }
-    .dropdown-content {
+    .events-list {
       display: none;
       position: absolute;
-      background-color: inherit;
-      min-width: 200px;
+      top: 100%;
+      left: 0;
+      background: inherit;
+      border: 1px solid gray;
       max-height: 150px;
       overflow-y: auto;
-      padding: 6px;
-      border: 1px solid gray;
-      border-radius: 8px;
+      padding: 8px;
+      width: 100%;
     }
-    .dropdown.show .dropdown-content {
+    .events-list.active {
       display: block;
     }
     .bubble {
       display: inline-block;
-      background: #2196F3;
-      color: white;
-      padding: 6px 10px;
+      padding: 6px 12px;
+      border-radius: 20px;
       margin: 4px;
-      border-radius: 50%;
-      font-size: 12px;
-    }
-    .quote-box {
-      margin-top: 10px;
-      font-style: italic;
+      cursor: default;
       font-size: 14px;
-      text-align: center;
+    }
+    .bubble.win {
+      background: #2196f3;
+      color: white;
+    }
+    .bubble.loss {
+      background: gray;
+      color: white;
+    }
+    .result {
+      font-size: 18px;
+      margin-top: 20px;
+      font-weight: bold;
+    }
+    .mode-toggle {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      cursor: pointer;
+      padding: 6px 12px;
+      border: 1px solid gray;
+      border-radius: 6px;
     }
   </style>
 </head>
 <body>
-  <div class="toggle">
-    <button onclick="toggleMode()">🌙</button>
-  </div>
-
+  <div class="mode-toggle" onclick="toggleMode()">🌙</div>
   <div class="container">
-    <div class="row"><label>IB</label><input type="number" id="ib" value="10000"></div>
-    <div class="row"><label>CB</label>
-      <input type="number" id="cb" value="10000" class="small-input">
-      <input type="number" id="cbChange" placeholder="+/-" class="small-input">
-      <button onclick="changeCB('+')">+</button>
-      <button onclick="changeCB('-')">-</button>
-    </div>
-    <div class="row"><label>TDD</label><input type="number" id="tdd" value="2000"></div>
-    <div class="row"><label>RISK</label><input type="number" id="risk" value="100"></div>
-
     <div class="row">
-      <button onclick="recordWin()">WIN</button>
-      <button onclick="recordLoss()">LOSS</button>
-      <button onclick="undo()">UNDO</button>
+      <label>IB</label>
+      <input type="number" id="ib" value="25000">
     </div>
-
-    <div class="row"><label>WINRATE</label><span id="winrate">0%</span></div>
-    <div class="row"><label>NEXT RISK</label><span id="nextRisk">0</span></div>
-
-    <div class="dropdown">
-      <button onclick="toggleDropdown()">EVENTS</button>
-      <div class="dropdown-content" id="eventLog"></div>
+    <div class="row">
+      <label>TDD</label>
+      <input type="number" id="tdd" value="2500">
     </div>
-
-    <div class="quote-box" id="quoteBox"></div>
+    <div class="row">
+      <label>CB</label>
+      <input type="number" id="cbInput" placeholder="Enter CB">
+      <button onclick="adjustCB(100)">+</button>
+      <button onclick="adjustCB(-100)">-</button>
+      <div class="cb-display" id="cbDisplay">24600</div>
+    </div>
+    <div class="row">
+      <label>RISK %</label>
+      <input type="number" id="risk" value="10">
+      <div class="toggle">
+        <label><input type="checkbox" id="modeSwitch"> Use IB if CB > IB</label>
+      </div>
+    </div>
+    <div class="row events-dropdown">
+      <button onclick="toggleEvents()">EVENTS ▼</button>
+      <div class="events-list" id="eventsList"></div>
+    </div>
+    <div class="result" id="nextRisk">NEXT RISK: $0</div>
   </div>
 
-<script>
-  let wins = 0, losses = 0, history = [];
-  const quotes = [
-    "Losses are just the cost of doing business.",
-    "Stick to the process, not the outcome.",
-    "Trading is a marathon, not a sprint.",
-    "Every loss brings you closer to discipline.",
-    "The edge plays out over time, not today."
-  ];
+  <script>
+    let dark = true;
+    function toggleMode() {
+      dark = !dark;
+      document.body.classList.toggle("light", !dark);
+    }
 
-  function toggleMode() {
-    document.body.classList.toggle("light-mode");
-  }
+    function adjustCB(amount) {
+      let cbDisplay = document.getElementById("cbDisplay");
+      let cb = parseFloat(cbDisplay.innerText) || 0;
+      cb += amount;
+      cbDisplay.innerText = cb;
+      calculate();
+    }
 
-  function changeCB(type) {
-    let cb = parseFloat(document.getElementById("cb").value);
-    let change = parseFloat(document.getElementById("cbChange").value) || 0;
-    if (type === '+') cb += change;
-    else cb -= change;
-    document.getElementById("cb").value = cb;
-    updateRisk();
-  }
-
-  function recordWin() {
-    wins++;
-    history.push("WIN");
-    addBubble("W");
-    showQuote();
-    updateStats();
-  }
-
-  function recordLoss() {
-    losses++;
-    history.push("LOSS");
-    addBubble("L");
-    showQuote();
-    updateStats();
-  }
-
-  function undo() {
-    let last = history.pop();
-    if (last === "WIN") wins--;
-    if (last === "LOSS") losses--;
-    updateStats();
-    renderEvents();
-  }
-
-  function updateStats() {
-    let total = wins + losses;
-    let winrate = total > 0 ? ((wins / total) * 100).toFixed(1) : 0;
-    document.getElementById("winrate").textContent = winrate + "%";
-    updateRisk();
-    renderEvents();
-  }
-
-  function updateRisk() {
-    let cb = parseFloat(document.getElementById("cb").value);
-    let tdd = parseFloat(document.getElementById("tdd").value);
-    let risk = parseFloat(document.getElementById("risk").value);
-    let remainingDD = tdd - (parseFloat(document.getElementById("ib").value) - cb);
-    let nextRisk = (remainingDD / tdd) * risk;
-    document.getElementById("nextRisk").textContent = nextRisk.toFixed(2);
-  }
-
-  function addBubble(text) {
-    const bubble = document.createElement("div");
-    bubble.className = "bubble";
-    bubble.textContent = text;
-    document.getElementById("eventLog").appendChild(bubble);
-  }
-
-  function renderEvents() {
-    let eventLog = document.getElementById("eventLog");
-    eventLog.innerHTML = "";
-    history.forEach(h => {
-      const bubble = document.createElement("div");
-      bubble.className = "bubble";
-      bubble.textContent = h === "WIN" ? "W" : "L";
-      eventLog.appendChild(bubble);
+    document.getElementById("cbInput").addEventListener("change", function() {
+      document.getElementById("cbDisplay").innerText = this.value;
+      calculate();
     });
-  }
 
-  function toggleDropdown() {
-    document.querySelector(".dropdown").classList.toggle("show");
-  }
+    function calculate() {
+      let ib = parseFloat(document.getElementById("ib").value) || 0;
+      let cb = parseFloat(document.getElementById("cbDisplay").innerText) || 0;
+      let tdd = parseFloat(document.getElementById("tdd").value) || 0;
+      let riskPercent = parseFloat(document.getElementById("risk").value) || 0;
+      let useIBMode = document.getElementById("modeSwitch").checked;
 
-  function showQuote() {
-    let quote = quotes[Math.floor(Math.random() * quotes.length)];
-    document.getElementById("quoteBox").textContent = quote;
-  }
+      let base = tdd;
+      if (useIBMode && cb > ib) {
+        base = ib;
+      }
+      let riskAmount = (base * riskPercent) / 100;
+      document.getElementById("nextRisk").innerText = "NEXT RISK: $" + riskAmount.toFixed(2);
+    }
 
-  updateRisk();
-</script>
+    function toggleEvents() {
+      document.getElementById("eventsList").classList.toggle("active");
+    }
+
+    function addEvent(type) {
+      let bubble = document.createElement("div");
+      bubble.className = "bubble " + type;
+      bubble.innerText = type.toUpperCase();
+      document.getElementById("eventsList").appendChild(bubble);
+    }
+
+    // demo bubbles
+    addEvent("win");
+    addEvent("loss");
+    addEvent("win");
+
+    calculate();
+  </script>
 </body>
 </html>
