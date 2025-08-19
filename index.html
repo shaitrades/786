@@ -3,239 +3,168 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ENIGMA Tool</title>
+  <title>ENIGMA Risk Tool</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #121212;
-      color: #fff;
+      background: #111;
+      color: white;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
       margin: 0;
     }
-
-    .panel {
-      background: #1e1e1e;
+    .container {
+      background: #222;
       padding: 20px;
-      border-radius: 20px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-      width: 350px;
+      border-radius: 15px;
+      width: 320px;
       text-align: center;
     }
-
-    h2 {
-      margin-bottom: 15px;
-    }
-
     .row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin: 10px 0;
+      margin: 8px 0;
     }
-
-    .row label {
-      flex: 1;
-      text-align: left;
-    }
-
-    .row input {
-      flex: 1;
+    input, button, select {
       padding: 6px;
-      border-radius: 8px;
+      border-radius: 6px;
       border: none;
-      text-align: center;
     }
-
-    .small-input {
-      width: 60px;
+    input.small {
+      width: 70px;
     }
-
-    button {
-      margin: 5px;
-      padding: 6px 10px;
+    .buttons button {
+      flex: 1;
+      margin: 2px;
+      padding: 10px;
+      border-radius: 10px;
       border: none;
-      border-radius: 8px;
       cursor: pointer;
-      background: #4CAF50;
-      color: #fff;
-      font-size: 14px;
     }
-
-    .bubble-container {
+    .buttons {
       display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
       margin-top: 10px;
-      gap: 5px;
     }
-
-    .bubble {
-      padding: 8px 12px;
-      border-radius: 50%;
-      color: white;
-      font-weight: bold;
-    }
-
-    .win { background: #4CAF50; }
-    .loss { background: #F44336; }
-
     .quote {
-      margin-top: 15px;
-      font-size: 14px;
+      margin-top: 10px;
       font-style: italic;
+      color: #ccc;
+    }
+    .switch {
+      margin-top: 10px;
     }
   </style>
 </head>
 <body>
-  <div class="panel">
-    <h2>ENIGMA Tool</h2>
-
+  <div class="container">
     <div class="row">
-      <label for="ib">Initial Balance:</label>
-      <input type="number" id="ib" value="1000">
+      <label>IB:</label>
+      <input type="number" id="ib" value="10000" class="small">
+    </div>
+    <div class="row">
+      <label>CB:</label>
+      <input type="number" id="cb" value="10000" class="small">
+      <input type="number" id="cbChange" value="0" class="small">
+      <button onclick="adjustCB(true)">+</button>
+      <button onclick="adjustCB(false)">-</button>
+    </div>
+    <div class="row">
+      <label>TAD:</label>
+      <input type="number" id="tad" value="1000" class="small">
+    </div>
+    <div class="row">
+      <label>Risk%:</label>
+      <input type="number" id="risk" value="2" class="small">
     </div>
 
     <div class="row">
-      <label for="cb">Current Balance:</label>
-      <input type="number" id="cb" value="1000">
+      <strong>Winrate:</strong> <span id="winrate">0%</span>
     </div>
-
-    <!-- Manual Amount + Buttons -->
     <div class="row">
-      <label for="adjust">Adjust CB:</label>
-      <input type="number" id="adjust" class="small-input" value="0">
-      <button onclick="adjustBalance(true)">+</button>
-      <button onclick="adjustBalance(false)">-</button>
+      <strong>Next Risk:</strong> <span id="nextrisk">0</span>
     </div>
 
-    <div class="row">
-      <label for="risk">Risk %:</label>
-      <input type="number" id="risk" value="1">
+    <div class="buttons">
+      <button onclick="trade(true)">Win</button>
+      <button onclick="trade(false)">Lose</button>
+      <button onclick="undo()">Undo</button>
     </div>
 
-    <div class="row">
-      <label>Next Risk:</label>
-      <span id="nextRisk">$10.00</span>
+    <div class="switch">
+      <label>
+        <input type="checkbox" id="riskMode" onchange="updateDisplay()"> Fixed Risk Mode
+      </label>
     </div>
 
-    <div class="row">
-      <button onclick="addBubble(true)">Win</button>
-      <button onclick="addBubble(false)">Loss</button>
-    </div>
-
-    <div class="row">
-      <button onclick="undoBubble()">Undo</button>
-    </div>
-
-    <div class="row">
-      <label>Win Rate:</label>
-      <span id="winRate">0%</span>
-    </div>
-
-    <div class="bubble-container" id="bubbles"></div>
-
-    <div class="quote" id="quoteBox">Stay disciplined.</div>
+    <div class="quote" id="quote"></div>
   </div>
 
   <script>
-    const cbInput = document.getElementById("cb");
-    const riskInput = document.getElementById("risk");
-    const nextRiskEl = document.getElementById("nextRisk");
-    const bubbles = document.getElementById("bubbles");
-    const winRateEl = document.getElementById("winRate");
-    const quoteBox = document.getElementById("quoteBox");
-
-    let bubbleHistory = JSON.parse(localStorage.getItem("bubbles")) || [];
-    let wins = parseInt(localStorage.getItem("wins")) || 0;
-    let losses = parseInt(localStorage.getItem("losses")) || 0;
+    let history = [];
+    let wins = 0, losses = 0;
 
     const quotes = [
-      "Losses are tuition you pay to the market.",
-      "Stay disciplined, results will follow.",
-      "Focus on process, not outcome.",
-      "Trading is a game of probabilities.",
-      "Protect your capital at all costs.",
-      "Your edge plays out over many trades.",
-      "Patience is also a position."
+      "Loss is just data, not identity.",
+      "Protect the downside, the upside takes care of itself.",
+      "Trading is probability, not certainty.",
+      "One trade doesn’t define you.",
+      "Small edges, repeated, make fortunes."
     ];
 
-    function updateNextRisk() {
-      const cb = parseFloat(cbInput.value) || 0;
-      const risk = parseFloat(riskInput.value) || 0;
-      const riskAmount = (cb * risk) / 100;
-      nextRiskEl.textContent = "$" + riskAmount.toFixed(2);
-      localStorage.setItem("cb", cb);
-      localStorage.setItem("risk", risk);
+    function adjustCB(add) {
+      let cb = parseFloat(document.getElementById("cb").value);
+      let change = parseFloat(document.getElementById("cbChange").value);
+      if (isNaN(change) || change <= 0) return;
+      document.getElementById("cb").value = add ? cb + change : cb - change;
+      updateDisplay();
     }
 
-    function adjustBalance(isAdd) {
-      const amount = parseFloat(document.getElementById("adjust").value) || 0;
-      let cb = parseFloat(cbInput.value) || 0;
-      cb = isAdd ? cb + amount : cb - amount;
-      cbInput.value = cb;
-      updateNextRisk();
-    }
-
-    function addBubble(win) {
-      const bubble = document.createElement("div");
-      bubble.classList.add("bubble", win ? "win" : "loss");
-      bubble.textContent = win ? "W" : "L";
-      bubbles.appendChild(bubble);
-
+    function trade(win) {
+      history.push(win);
       if (win) wins++; else losses++;
-
-      bubbleHistory.push(win ? "W" : "L");
-      localStorage.setItem("bubbles", JSON.stringify(bubbleHistory));
-      localStorage.setItem("wins", wins);
-      localStorage.setItem("losses", losses);
-
-      updateWinRate();
-
-      // show motivational quote
-      quoteBox.textContent = quotes[Math.floor(Math.random() * quotes.length)];
+      if (!win) showQuote();
+      updateDisplay();
     }
 
-    function undoBubble() {
-      if (bubbleHistory.length === 0) return;
-      const last = bubbleHistory.pop();
-      bubbles.removeChild(bubbles.lastChild);
-
-      if (last === "W") wins--; else losses--;
-
-      localStorage.setItem("bubbles", JSON.stringify(bubbleHistory));
-      localStorage.setItem("wins", wins);
-      localStorage.setItem("losses", losses);
-
-      updateWinRate();
+    function undo() {
+      if (history.length === 0) return;
+      let last = history.pop();
+      if (last) wins--; else losses--;
+      updateDisplay();
     }
 
-    function updateWinRate() {
-      const total = wins + losses;
-      const rate = total === 0 ? 0 : (wins / total) * 100;
-      winRateEl.textContent = rate.toFixed(1) + "%";
+    function showQuote() {
+      let q = quotes[Math.floor(Math.random() * quotes.length)];
+      document.getElementById("quote").textContent = q;
     }
 
-    function restoreState() {
-      cbInput.value = localStorage.getItem("cb") || 1000;
-      riskInput.value = localStorage.getItem("risk") || 1;
-      updateNextRisk();
+    function updateDisplay() {
+      let ib = parseFloat(document.getElementById("ib").value);
+      let cb = parseFloat(document.getElementById("cb").value);
+      let tad = parseFloat(document.getElementById("tad").value);
+      let riskPercent = parseFloat(document.getElementById("risk").value);
+      let fixedMode = document.getElementById("riskMode").checked;
 
-      bubbleHistory.forEach(b => {
-        const bubble = document.createElement("div");
-        bubble.classList.add("bubble", b === "W" ? "win" : "loss");
-        bubble.textContent = b;
-        bubbles.appendChild(bubble);
-      });
+      // Winrate
+      let total = wins + losses;
+      let winrate = total > 0 ? ((wins / total) * 100).toFixed(1) : 0;
+      document.getElementById("winrate").textContent = winrate + "%";
 
-      updateWinRate();
+      // Next Risk Calculation
+      let nextRisk;
+      if (fixedMode && cb > ib) {
+        nextRisk = (cb * riskPercent / 100).toFixed(2);
+      } else {
+        let remainingDD = tad - Math.max(0, ib - cb);
+        nextRisk = (remainingDD * riskPercent / 100).toFixed(2);
+      }
+      document.getElementById("nextrisk").textContent = nextRisk;
     }
 
-    restoreState();
-    cbInput.addEventListener("input", updateNextRisk);
-    riskInput.addEventListener("input", updateNextRisk);
+    updateDisplay();
   </script>
 </body>
 </html>
