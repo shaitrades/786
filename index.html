@@ -7,205 +7,258 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      margin: 0; padding: 0;
-      display: flex; justify-content: center; align-items: center;
-      height: 100vh;
-      background: #f4f4f4; color: #222;
-      transition: background 0.3s, color 0.3s;
+      background-color: #121212;
+      color: #fff;
+      text-align: center;
+      margin: 0;
+      padding: 0;
     }
-    body.dark { background: #121212; color: #f9f9f9; }
-
     .container {
-      width: 95%; max-width: 420px;
-      padding: 20px;
-      border-radius: 15px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.15);
-      background: inherit;
-      border: 1px solid #444;
+      width: 95%;
+      max-width: 500px;
+      margin: 20px auto;
+      background: #1e1e1e;
+      border-radius: 12px;
+      padding: 15px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
     }
-    h2 { text-align: center; margin-bottom: 20px; }
-
+    h1 {
+      font-size: 20px;
+      margin-bottom: 15px;
+      letter-spacing: 1px;
+    }
     .grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-      margin-bottom: 15px;
-    }
-    .grid label {
-      font-size: 12px; text-align: center;
-      display: block; margin-bottom: 4px;
-    }
-    .grid input {
-      width: 100%; padding: 6px;
-      border-radius: 6px;
-      border: 1px solid #888;
-      text-align: center;
-      background: inherit; color: inherit;
-    }
-
-    .row {
-      display: flex;
-      justify-content: space-around;
+      gap: 8px;
       margin-bottom: 12px;
     }
-    .row button {
-      flex: 1; margin: 0 5px;
+    .box {
+      background: #2a2a2a;
       padding: 8px;
-      border-radius: 6px;
-      border: none;
-      background: #007bff; color: #fff;
-      cursor: pointer; font-weight: bold;
-      transition: 0.2s;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 12px;
     }
-    .row button:hover { background: #0056b3; }
-
-    .risk-toggle {
-      display: flex; justify-content: center;
-      align-items: center; margin: 10px 0;
-      font-size: 13px;
-    }
-    .risk-toggle input { margin-left: 10px; }
-
-    #darkToggle {
-      position: absolute; top: 15px; right: 15px;
-      cursor: pointer; font-size: 20px;
-    }
-
-    .events {
-      margin-top: 15px;
-    }
-    details summary {
-      cursor: pointer;
-      padding: 6px; background: #007bff;
-      border-radius: 6px; color: #fff;
+    .box input {
+      width: 100%;
       text-align: center;
+      margin-top: 4px;
+      padding: 4px;
+      border: none;
+      border-radius: 4px;
+    }
+    .cb-control {
+      display: flex;
+      gap: 4px;
+      margin-top: 4px;
+    }
+    .cb-control input {
+      width: 50px;
+      text-align: center;
+      padding: 4px;
+    }
+    .cb-control button {
+      background: #444;
+      border: none;
+      color: white;
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .cb-control button:hover {
+      background: #666;
+    }
+    .row {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin: 10px 0;
+    }
+    button {
+      background: #3a3a3a;
+      border: none;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    button:hover {
+      background: #555;
+    }
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 24px;
+    }
+    .switch input { display: none; }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0;
+      right: 0; bottom: 0;
+      background-color: #888;
+      border-radius: 24px;
+      transition: .4s;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px; width: 18px;
+      left: 3px; bottom: 3px;
+      background-color: white;
+      border-radius: 50%;
+      transition: .4s;
+    }
+    input:checked + .slider {
+      background-color: #4caf50;
+    }
+    input:checked + .slider:before {
+      transform: translateX(26px);
+    }
+    .dropdown {
+      margin-top: 10px;
+    }
+    .dropdown-content {
+      display: none;
+      max-height: 120px;
+      overflow-y: auto;
+      background: #2a2a2a;
+      border-radius: 8px;
+      padding: 6px;
+      margin-top: 4px;
     }
     .bubble {
+      background: #444;
       padding: 6px 10px;
-      margin: 6px 0;
       border-radius: 12px;
-      background: #eee; color: #222;
-      font-size: 13px;
+      margin: 4px;
+      font-size: 12px;
+      text-align: left;
     }
-    body.dark .bubble { background: #333; color: #f9f9f9; }
+    .quote-box {
+      margin-top: 15px;
+      font-style: italic;
+      font-size: 13px;
+      background: #2a2a2a;
+      padding: 8px;
+      border-radius: 8px;
+    }
   </style>
 </head>
 <body>
-  <div id="darkToggle">🌙</div>
   <div class="container">
-    <h2>PRO GAMBLER</h2>
-
+    <h1>PRO GAMBLER</h1>
     <div class="grid">
-      <div>
-        <label>IB</label>
+      <div class="box">
+        IB
         <input type="number" id="ib" value="1000">
       </div>
-      <div>
-        <label>CB</label>
-        <input type="number" id="cb" value="1000">
+      <div class="box">
+        CB
+        <div class="cb-control">
+          <button onclick="adjustCB(-getCBInput())">-</button>
+          <input type="number" id="cbInput" value="1000">
+          <button onclick="adjustCB(getCBInput())">+</button>
+        </div>
       </div>
-      <div>
-        <label>TDD</label>
+      <div class="box">
+        TDD
         <input type="number" id="tdd" value="500">
       </div>
-      <div>
-        <label>RISK</label>
-        <input type="number" id="risk" value="50">
+      <div class="box">
+        RISK
+        <input type="number" id="risk" value="1">
       </div>
-    </div>
-
-    <div class="risk-toggle">
-      Fixed Risk
-      <input type="checkbox" id="riskSwitch">
-      TDD Risk
     </div>
 
     <div class="row">
-      <button onclick="recordWin()">WIN</button>
-      <button onclick="recordLoss()">LOSS</button>
+      <button onclick="addEvent('WIN')">WIN</button>
+      <button onclick="addEvent('LOSS')">LOSS</button>
       <button onclick="undo()">UNDO</button>
     </div>
 
-    <div id="nextRisk" style="text-align:center;font-weight:bold;"></div>
-
-    <div class="events">
-      <details>
-        <summary>EVENTS</summary>
-        <div id="bubbles"></div>
-      </details>
+    <div>
+      <label style="font-size:12px;">FIXED</label>
+      <label class="switch">
+        <input type="checkbox" id="riskMode">
+        <span class="slider"></span>
+      </label>
+      <label style="font-size:12px;">TOTAL DD</label>
     </div>
+
+    <div id="nextRiskBox" style="margin-top:12px; font-size:14px;"></div>
+
+    <div class="dropdown">
+      <button onclick="toggleDropdown()">EVENTS</button>
+      <div class="dropdown-content" id="events"></div>
+    </div>
+
+    <div class="quote-box" id="quoteBox">Stay disciplined. Trust probabilities.</div>
   </div>
 
   <script>
-    const ibInput = document.getElementById("ib");
-    const cbInput = document.getElementById("cb");
-    const tddInput = document.getElementById("tdd");
-    const riskInput = document.getElementById("risk");
-    const riskSwitch = document.getElementById("riskSwitch");
-    const nextRiskDiv = document.getElementById("nextRisk");
-    const bubblesDiv = document.getElementById("bubbles");
-
+    let events = [];
     const quotes = [
+      "Stay disciplined. Trust probabilities.",
       "Losses are tuition fees for success.",
-      "Probability is your edge, not certainty.",
-      "Stick to process, not emotions.",
-      "One trade doesn’t define you.",
-      "Capital protection first, profits second."
+      "Process > Outcome. Always.",
+      "Next trade is a new opportunity.",
+      "Protect your capital, respect your edge."
     ];
 
-    let history = [];
+    function getCBInput() {
+      return Number(document.getElementById('cbInput').value);
+    }
+
+    function adjustCB(amount) {
+      let cb = getCBInput();
+      cb += amount;
+      document.getElementById('cbInput').value = cb;
+      updateRisk();
+    }
 
     function updateRisk() {
-      let cb = parseFloat(cbInput.value) || 0;
-      let ib = parseFloat(ibInput.value) || 0;
-      let tdd = parseFloat(tddInput.value) || 0;
-      let risk;
-      if (riskSwitch.checked) {
-        let ddLeft = cb - (ib - tdd);
-        risk = ddLeft * 0.05; // 5% of remaining DD
-      } else {
-        risk = parseFloat(riskInput.value) || 0;
-      }
-      nextRiskDiv.textContent = "NEXT RISK: " + risk.toFixed(2);
+      let cb = getCBInput();
+      let ib = Number(document.getElementById("ib").value);
+      let tdd = Number(document.getElementById("tdd").value);
+      let risk = Number(document.getElementById("risk").value);
+      let riskMode = document.getElementById("riskMode").checked;
+
+      let nextRisk = riskMode ? (risk / 100) * tdd : (risk / 100) * cb;
+
+      document.getElementById("nextRiskBox").innerText = 
+        "NEXT RISK: " + nextRisk.toFixed(2);
     }
 
-    function addBubble(text) {
-      const div = document.createElement("div");
-      div.className = "bubble";
-      div.textContent = text;
-      bubblesDiv.appendChild(div);
-    }
+    function addEvent(type) {
+      events.push(type);
+      let bubble = document.createElement("div");
+      bubble.className = "bubble";
+      bubble.innerText = type;
+      document.getElementById("events").appendChild(bubble);
 
-    function recordWin() {
-      let risk = parseFloat(nextRiskDiv.textContent.replace("NEXT RISK: ", "")) || 0;
-      cbInput.value = (parseFloat(cbInput.value) + risk).toFixed(2);
-      addBubble("✅ WIN +" + risk.toFixed(2));
-      updateRisk();
-    }
-
-    function recordLoss() {
-      let risk = parseFloat(nextRiskDiv.textContent.replace("NEXT RISK: ", "")) || 0;
-      cbInput.value = (parseFloat(cbInput.value) - risk).toFixed(2);
-      addBubble("❌ LOSS -" + risk.toFixed(2) + " | " + quotes[Math.floor(Math.random() * quotes.length)]);
-      updateRisk();
+      // Show motivational quote
+      document.getElementById("quoteBox").innerText =
+        quotes[Math.floor(Math.random() * quotes.length)];
     }
 
     function undo() {
-      if (bubblesDiv.lastChild) bubblesDiv.removeChild(bubblesDiv.lastChild);
-      updateRisk();
+      if (events.length > 0) {
+        events.pop();
+        let container = document.getElementById("events");
+        container.removeChild(container.lastChild);
+      }
     }
 
-    document.querySelectorAll("input").forEach(input => {
-      input.addEventListener("input", updateRisk);
-    });
-    riskSwitch.addEventListener("change", updateRisk);
-
-    // Dark mode toggle
-    const toggle = document.getElementById("darkToggle");
-    toggle.addEventListener("click", () => {
-      document.body.classList.toggle("dark");
-      toggle.textContent = document.body.classList.contains("dark") ? "☀️" : "🌙";
-    });
+    function toggleDropdown() {
+      let content = document.getElementById("events");
+      content.style.display = content.style.display === "block" ? "none" : "block";
+    }
 
     updateRisk();
   </script>
