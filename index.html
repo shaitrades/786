@@ -5,152 +5,312 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>ENIGMA Tool</title>
   <style>
+    :root {
+      --bg-light: #f4f4f9;
+      --bg-dark: #1e1e1e;
+      --panel-light: #fff;
+      --panel-dark: #2c2c2c;
+      --text-light: #000;
+      --text-dark: #fff;
+      --button-green: #4CAF50;
+      --button-red: #f44336;
+    }
+
     body {
-      font-family: Arial, sans-serif;
-      background-color: #121212;
-      color: #e0e0e0;
       margin: 0;
-      padding: 0;
+      font-family: Arial, sans-serif;
+      background-color: var(--bg-light);
+      color: var(--text-light);
       display: flex;
       justify-content: center;
       align-items: flex-start;
       min-height: 100vh;
+      transition: all 0.3s ease-in-out;
     }
-    .app-container {
-      text-align: center;
-      width: 95%;
-      max-width: 450px;
-      padding: 15px;
+
+    body.dark {
+      background-color: var(--bg-dark);
+      color: var(--text-dark);
     }
-    .panel {
-      background: #1e1e1e;
-      padding: 15px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+
+    .container {
+      margin-top: 20px;
+      width: 90%;
+      max-width: 500px;
+      background: var(--panel-light);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      transition: all 0.3s ease-in-out;
     }
-    .input-row {
+
+    body.dark .container {
+      background: var(--panel-dark);
+    }
+
+    .row {
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      margin-bottom: 18px;
+      margin-bottom: 15px;
     }
-    .input-group {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-    }
-    .input-group label {
-      flex: 1;
-      text-align: left;
+
+    label {
+      margin-bottom: 5px;
       font-size: 14px;
     }
-    .input-group input {
-      flex: 1;
-      padding: 6px;
-      border-radius: 6px;
-      border: none;
-      outline: none;
-      text-align: right;
+
+    input {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      font-size: 14px;
+      width: 100%;
     }
-    .balance-adjust {
+
+    .balance-row {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      gap: 6px;
-      margin-top: 6px;
+      gap: 8px;
     }
-    .balance-adjust input {
-      flex: 1;
-      padding: 6px;
-      border-radius: 6px;
-      border: none;
-      outline: none;
-      text-align: right;
-    }
-    .balance-adjust button {
+
+    .adjust-btn {
       padding: 6px 10px;
       border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      background: #333;
-      color: #fff;
-      font-size: 13px;
-      transition: background 0.2s;
-    }
-    .balance-adjust button:hover {
+      border-radius: 8px;
       background: #555;
-    }
-    .bubble-container {
-      margin: 18px 0;
-      min-height: 50px;
-    }
-    .bubble {
-      display: inline-block;
-      margin: 4px;
-      padding: 10px 14px;
-      border-radius: 20px;
+      color: white;
       font-size: 14px;
-      font-weight: bold;
-      color: #fff;
-      box-shadow: 0 3px 6px rgba(0,0,0,0.4);
-    }
-    .bubble.win { background-color: #4caf50; }
-    .bubble.loss { background-color: #f44336; }
-    .controls {
-      display: flex;
-      justify-content: center;
-      gap: 12px;
-      margin-bottom: 18px;
-    }
-    .controls button {
-      padding: 10px 14px;
-      border: none;
-      border-radius: 10px;
       cursor: pointer;
-      font-size: 14px;
-      font-weight: bold;
-      background: #333;
-      color: #fff;
-      transition: background 0.2s;
     }
-    .controls button:hover { background: #555; }
-    .stats {
+
+    .adjust-btn:hover {
+      opacity: 0.8;
+    }
+
+    .button-row {
+      display: flex;
+      justify-content: space-around;
+      margin: 15px 0;
+    }
+
+    .btn {
+      flex: 1;
+      margin: 0 5px;
+      padding: 12px;
+      border: none;
+      border-radius: 12px;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .btn.green { background-color: var(--button-green); }
+    .btn.red { background-color: var(--button-red); }
+
+    .panel {
       display: flex;
       justify-content: space-between;
+      margin-top: 20px;
+      padding: 10px;
+      border-radius: 12px;
       font-size: 14px;
-      margin-top: 12px;
+      background: rgba(0,0,0,0.05);
     }
-    .toggle-darkmode {
+
+    body.dark .panel {
+      background: rgba(255,255,255,0.1);
+    }
+
+    .bubble-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 15px;
+    }
+
+    .bubble {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+    }
+
+    .bubble.green { background: var(--button-green); }
+    .bubble.red { background: var(--button-red); }
+
+    #undoBtn {
+      margin-top: 10px;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 8px;
+      background: #555;
+      color: white;
+      cursor: pointer;
+    }
+
+    .darkmode-toggle {
       position: absolute;
-      top: 12px;
-      right: 12px;
+      top: 10px;
+      right: 10px;
       background: none;
       border: none;
       font-size: 22px;
       cursor: pointer;
-      color: #e0e0e0;
     }
-    .light-mode {
-      background-color: #f0f0f0;
-      color: #121212;
-    }
-    .light-mode .panel { background: #fff; }
-    .light-mode .controls button { background: #ddd; color: #121212; }
-    .light-mode .controls button:hover { background: #bbb; }
-    .light-mode .bubble.win { background-color: #2e7d32; }
-    .light-mode .bubble.loss { background-color: #c62828; }
   </style>
 </head>
 <body>
-  <div class="app-container">
-    <button class="toggle-darkmode" onclick="toggleDarkMode()">🌙</button>
+  <button class="darkmode-toggle" id="darkModeToggle">🌙</button>
+
+  <div class="container">
+    <div class="row">
+      <label for="ib">Initial Balance</label>
+      <input type="number" id="ib" placeholder="Enter Initial Balance">
+    </div>
+
+    <div class="row">
+      <label for="cb">Current Balance</label>
+      <div class="balance-row">
+        <input type="number" id="cb" placeholder="Enter Current Balance">
+        <button class="adjust-btn" onclick="adjustCB(100)">+100</button>
+        <button class="adjust-btn" onclick="adjustCB(-100)">-100</button>
+      </div>
+    </div>
+
+    <div class="row">
+      <label for="tad">Target Account Drawdown</label>
+      <input type="number" id="tad" placeholder="Enter TAD">
+    </div>
+
+    <div class="row">
+      <label for="risk">Risk %</label>
+      <input type="number" id="risk" placeholder="Enter Risk %">
+    </div>
+
+    <div class="button-row">
+      <button class="btn green" onclick="addBubble('green')">Win</button>
+      <button class="btn red" onclick="addBubble('red')">Loss</button>
+    </div>
+
     <div class="panel">
-      <div class="input-row">
-        <div class="input-group">
-          <label for="ib">Initial Balance:</label>
-          <input type="number" id="ib" placeholder="Enter IB">
-        </div>
-        <div class="input-group">
-          <label for="cb">Current Balance:</label>
-          <input type="numb
+      <div>Streak: <span id="streak">0</span></div>
+      <div>Winrate: <span id="winrate">0%</span></div>
+    </div>
+
+    <div class="bubble-container" id="bubbleContainer"></div>
+    <button id="undoBtn" onclick="undo()">Undo</button>
+  </div>
+
+  <script>
+    const ibInput = document.getElementById('ib');
+    const cbInput = document.getElementById('cb');
+    const tadInput = document.getElementById('tad');
+    const riskInput = document.getElementById('risk');
+    const streakEl = document.getElementById('streak');
+    const winrateEl = document.getElementById('winrate');
+    const bubbleContainer = document.getElementById('bubbleContainer');
+    const undoBtn = document.getElementById('undoBtn');
+    const darkModeToggle = document.getElementById('darkModeToggle');
+
+    let streak = 0;
+    let wins = 0;
+    let losses = 0;
+    let bubbles = [];
+
+    const winQuotes = [
+      "Well done! Keep stacking those wins.",
+      "A win is proof your edge works!",
+      "Consistency builds confidence.",
+      "Each win is one step closer to mastery!"
+    ];
+
+    const lossQuotes = [
+      "Loss = tuition fee to the market.",
+      "Protect your mindset, losses are normal.",
+      "Probability > Perfection.",
+      "Stay calm, focus on execution."
+    ];
+
+    function saveData() {
+      localStorage.setItem('ib', ibInput.value);
+      localStorage.setItem('cb', cbInput.value);
+      localStorage.setItem('tad', tadInput.value);
+      localStorage.setItem('risk', riskInput.value);
+      localStorage.setItem('streak', streak);
+      localStorage.setItem('wins', wins);
+      localStorage.setItem('losses', losses);
+      localStorage.setItem('bubbles', JSON.stringify(bubbles));
+      localStorage.setItem('darkMode', document.body.classList.contains('dark'));
+    }
+
+    function loadData() {
+      ibInput.value = localStorage.getItem('ib') || '';
+      cbInput.value = localStorage.getItem('cb') || '';
+      tadInput.value = localStorage.getItem('tad') || '';
+      riskInput.value = localStorage.getItem('risk') || '';
+      streak = parseInt(localStorage.getItem('streak')) || 0;
+      wins = parseInt(localStorage.getItem('wins')) || 0;
+      losses = parseInt(localStorage.getItem('losses')) || 0;
+      bubbles = JSON.parse(localStorage.getItem('bubbles')) || [];
+      updateUI();
+      if (localStorage.getItem('darkMode') === "true") {
+        document.body.classList.add('dark');
+        darkModeToggle.textContent = "☀️";
+      }
+    }
+
+    function updateUI() {
+      streakEl.textContent = streak;
+      const total = wins + losses;
+      const winrate = total ? ((wins / total) * 100).toFixed(1) : 0;
+      winrateEl.textContent = winrate + "%";
+      bubbleContainer.innerHTML = '';
+      bubbles.forEach(b => {
+        const div = document.createElement('div');
+        div.classList.add('bubble', b);
+        bubbleContainer.appendChild(div);
+      });
+      saveData();
+    }
+
+    function addBubble(color) {
+      bubbles.push(color);
+      if (color === 'green') {
+        wins++;
+        streak = streak >= 0 ? streak + 1 : 1;
+        alert(winQuotes[Math.floor(Math.random()*winQuotes.length)]);
+      } else {
+        losses++;
+        streak = streak <= 0 ? streak - 1 : -1;
+        alert(lossQuotes[Math.floor(Math.random()*lossQuotes.length)]);
+      }
+      updateUI();
+    }
+
+    function undo() {
+      const last = bubbles.pop();
+      if (last) {
+        if (last === 'green') { wins--; }
+        else { losses--; }
+        // reset streak
+        streak = 0;
+      }
+      updateUI();
+    }
+
+    function adjustCB(amount) {
+      let cb = parseFloat(cbInput.value) || 0;
+      cb += amount;
+      cbInput.value = cb;
+      saveData();
+    }
+
+    darkModeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark');
+      darkModeToggle.textContent = document.body.classList.contains('dark') ? "☀️" : "🌙";
+      saveData();
+    });
+
+    loadData();
+  </script>
+</body>
+</html>
